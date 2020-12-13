@@ -205,7 +205,6 @@ public class UnitPane extends JFrame implements ActionListener {
                     stmt.executeUpdate(String.format("DELETE FROM UNITA_PRODOTTO WHERE UNITA='%s'", table.getValueAt(table.getSelectedRow(), 0)));
                     stmt.close();
                     con.close();
-
                 } catch (Exception ex) {
                     System.out.println(ex.getMessage());
                 }

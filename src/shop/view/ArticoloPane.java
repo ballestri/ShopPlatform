@@ -11,25 +11,36 @@ import shop.view.articolo.CategoryPane;
 import shop.view.articolo.PositionPane;
 import shop.view.articolo.UnitPane;
 
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.*;
-import java.sql.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.*;
+
+import static javax.swing.JOptionPane.showMessageDialog;
+import static shop.utils.DesktopRender.FONT_FAMILY;
 
 
 public class ArticoloPane extends AContainer implements ActionListener {
 
     private static final Color JTF_COLOR = new Color(46, 134, 193);
-    private static final String FONT_FAMILY = "HelveticaNeue";
+    //private static final String FONT_FAMILY = "HelveticaNeue";
     public static JComboBox<String> jcbCategoria, jcbUnita, jcbPosizione;
     protected Font font;
     // la JToolbar
@@ -47,7 +58,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
     // Pannello delle funzionalita'
     JPanel internPanel, wrapperPane;
     RoundedPanel articlePane, informationPane;
-    JButton btn_list_categoria, btn_list_posizione, btn_list_unita, btn_modifica, btn_elimina, btn_salva;
+    JButton btn_list_categoria, btn_list_posizione, btn_list_unita, btn_nuovo, btn_aggiorna, btn_elimina, btn_salva;
     JScrollPane scrollPane;
     RoundedPanel actionPaneWrapper;
 
@@ -56,25 +67,27 @@ public class ArticoloPane extends AContainer implements ActionListener {
     JTableHeader tableHeader;
     JTable table;
 
-    // Gestione attributi del prodotto
-    public enum Attribute {
-        CATEGORIA("CATEGORIA"), UNITA("UNITA"), POSIZIONE("POSIZIONE");
-
-        String attribute;
-
-        Attribute(String s) {
-            attribute = s;
-        }
-
-        public String getAttribute() {
-            return attribute;
-        }
+    public ArticoloPane() {
+        initPanel();
     }
 
     // Informazioni sull'articolo
 
-    public ArticoloPane() {
-        initPanel();
+    public static ArrayList<String> loadProductAttribute(String attribute) {
+
+        ArrayList<String> lista = new ArrayList<>();
+        try {
+            Connection con = (new ConnectionManager()).getConnection();
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery(String.format("SELECT* FROM %s_PRODOTTO", attribute));
+            while (rs.next())
+                lista.add(rs.getString(attribute));
+            stmt.close();
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return lista;
     }
 
     public void initPanel() {
@@ -121,8 +134,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         internPanel.setBorder(border);
         internPanel.setBackground(new Color(39, 55, 70));
         articlePane.setPreferredSize(new Dimension(1150, 140));
-        // articlePane.setBackground(new Color(128, 0, 128));
-        //articlePane.setBackground(new Color(236, 240, 241  ));
         informationPane.setPreferredSize(new Dimension(1200, 70));
 
         // pannello delle azioni
@@ -150,7 +161,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         toolbar.addSeparator();
         btn_close.addActionListener(evt -> System.exit(0));
 
-
         informationPane.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 15));
         formatButton(btn_list_categoria);
         formatButton(btn_list_posizione);
@@ -173,7 +183,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         font = new Font(FONT_FAMILY, Font.BOLD, 16);
 
         lblCodice = new JLabel("Codice");
-        //lblCodice.setForeground(Color.WHITE);
         lblCodice.setFont(font);
 
         // Testo
@@ -181,7 +190,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jtfCodice.setCaretColor(Color.BLACK);
         jtfCodice.setBackground(JTF_COLOR);
         jtfCodice.setBorder(new LineBorder(Color.BLACK));
-
         jtfCodice.setFont(font);
 
         lblDescrizione = new JLabel("Descrizione");
@@ -196,21 +204,15 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jtfDescrizione.setBorder(new LineBorder(Color.BLACK));
 
         lblCategoria = new JLabel("Categoria");
-        //lblCategoria.setForeground(Color.WHITE);
         lblCategoria.setFont(font);
-
 
         jcbCategoria = new JComboBox<>(loadProductAttribute(Attribute.CATEGORIA.getAttribute()).toArray(new String[0]));
         jcbCategoria.setBorder(new LineBorder(Color.BLACK));
         jcbCategoria.setRenderer(new ComboRenderer());
         jcbCategoria.setFont(font);
         jcbCategoria.addActionListener(this);
-        //jcbCategoria.revalidate();
-        //jcbCategoria.repaint();
-        // caricamento dei dati nel db
 
         lblPosizione = new JLabel("Posizione");
-        //lblPosizione.setForeground(Color.WHITE);
         lblPosizione.setFont(font);
         // Testo
 
@@ -221,7 +223,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jcbPosizione.addActionListener(this);
 
         lblUnita = new JLabel("Unita'");
-        //lblUnita.setForeground(Color.WHITE);
         lblUnita.setFont(font);
 
         //jcbUnita = new JComboBox(new String[]{"Kilogrammi", "Metri", "Pacchi"});
@@ -233,7 +234,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
 
         lblFornitore = new JLabel("Fornitore");
-        //lblFornitore.setForeground(Color.WHITE);
         lblFornitore.setFont(font);
         // Testo
         jtfFornitore = new JTextField(16);
@@ -243,7 +243,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jtfFornitore.setFont(font);
 
         lblPrezzo = new JLabel("Prezzo");
-        //lblPrezzo.setForeground(Color.WHITE);
         lblPrezzo.setFont(font);
 
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.ITALY);
@@ -255,11 +254,8 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jtfCurrency.setHorizontalAlignment(SwingConstants.RIGHT);
         jtfCurrency.setPreferredSize(new Dimension(150, 25));
         jtfCurrency.setValue(0);
-        jtfCurrency.addPropertyChangeListener(evt -> formattercurrency());
-
 
         lblScorta = new JLabel("Scorta");
-        //lblScorta.setForeground(Color.WHITE);
         lblScorta.setFont(font);
 
         jspScorta = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
@@ -273,12 +269,10 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
 
         lblProvenienza = new JLabel("Provenienza");
-        //lblProvenienza.setForeground(Color.WHITE);
         lblProvenienza.setFont(font);
         // Testo
         jtfProvenienza = new JTextField(16);
         jtfProvenienza.setCaretColor(new Color(255, 255, 255));
-        // jtfProvenienza.setBorder(new EmptyBorder(0, 5, 0, 0));
         jtfProvenienza.setBackground(JTF_COLOR);
         jtfProvenienza.setFont(font);
         jtfProvenienza.setBorder(new LineBorder(Color.BLACK));
@@ -440,46 +434,44 @@ public class ArticoloPane extends AContainer implements ActionListener {
         actionPaneWrapper.setLayout(new FlowLayout());
         JPanel searchPane = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(8, 0, 3, 3);
-        //searchPane.setBorder(BorderFactory.createRaisedBevelBorder());
-        //searchPane.setPreferredSize(new Dimension(320, 60));
+        c.insets = new Insets(6, 13, 3, 10);
         JLabel lbl = new JLabel("Ricerca");
         lbl.setFont(font);
 
-        //filterField= new JTextField(16);
         filterField.setBackground(JTF_COLOR);
         filterField.setFont(font);
         filterField.setBorder(new LineBorder(Color.BLACK));
         searchPane.add(lbl, c);
         searchPane.add(filterField, c);
-        //actionPaneWrapper.setPreferredSize(new Dimension(1150, 70));
 
         actionPaneWrapper.add(searchPane, BorderLayout.WEST);
 
+        btn_nuovo = new JButton(DesktopRender.formatButton("+ Nuovo"));
         btn_salva = new JButton(DesktopRender.formatButton("Salva"));
-        btn_modifica = new JButton(DesktopRender.formatButton("Aggiorna"));
+        btn_aggiorna = new JButton(DesktopRender.formatButton("Aggiorna"));
         btn_elimina = new JButton(DesktopRender.formatButton("Elimina"));
 
         JPanel actionPane = new JPanel();
-        //actionPane.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 15));
         actionPane.setLayout(new GridBagLayout());
         GridBagConstraints ca = new GridBagConstraints();
         ca.insets = new Insets(5, 10, 3, 10);
         formatButton(btn_salva);
-        formatButton(btn_modifica);
+        formatButton(btn_aggiorna);
         formatButton(btn_elimina);
+        formatButton(btn_nuovo);
 
         actionPane.add(btn_salva, ca);
-        actionPane.add(btn_modifica, ca);
+        actionPane.add(btn_aggiorna, ca);
         actionPane.add(btn_elimina, ca);
-
-        //actionPaneWrapper.add(searchPane, BorderLayout.WEST);
-        actionPaneWrapper.add(actionPane, BorderLayout.EAST);
+        actionPane.add(btn_nuovo, ca);
 
         // Gestione degli eventi
+        btn_nuovo.addActionListener(this);
         btn_salva.addActionListener(this);
-        btn_modifica.addActionListener(this);
+        btn_aggiorna.addActionListener(this);
         btn_elimina.addActionListener(this);
+
+        actionPaneWrapper.add(actionPane, BorderLayout.EAST);
     }
 
     void buildArticleDetails() {
@@ -496,7 +488,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
                 int rendererWidth = returnComp.getPreferredSize().width;
                 TableColumn tableColumn = getColumnModel().getColumn(column);
                 tableColumn.setPreferredWidth(Math.max(rendererWidth + getIntercellSpacing().width, tableColumn.getPreferredWidth()));
-
                 if (!returnComp.getBackground().equals(getSelectionBackground())) {
                     returnComp.setBackground((row % 2 == 0 ? new Color(88, 214, 141) : Color.WHITE));
                 }
@@ -504,18 +495,16 @@ public class ArticoloPane extends AContainer implements ActionListener {
             }
         };
 
-        loadArticleFromDB().forEach(article -> tableModel.addRow(new String[]{article.getCodice(), article.getDescrizione(), article.getCategoria(), article.getPosizione(), article.getUnita(), article.getFornitore(), String.valueOf(article.getPrezzo()).concat(" €"), String.valueOf(article.getScorta()), article.getProvenienza()}));
+        loadArticleFromDB().forEach(article -> tableModel.addRow(new String[]{article.getCodice(), article.getDescrizione(), article.getCategoria(), article.getPosizione(), article.getUnita(), article.getFornitore(), String.valueOf(article.getPrezzo()).replace(".", ",").concat(" €"), String.valueOf(article.getScorta()), article.getProvenienza()}));
 
         tableHeader = table.getTableHeader();
         tableHeader.setBackground(new Color(39, 55, 70));
         tableHeader.setForeground(Color.WHITE);
 
-        //DefaultTableCellRenderer renderer = (DefaultTableCellRenderer) table.getDefaultRenderer(Object.class);
         filterField = RowFilterUtil.createRowFilter(table);
+        filterField.setColumns(16);
         RendererHighlighted renderer = new RendererHighlighted(filterField);
         table.setDefaultRenderer(Object.class, renderer);
-        //internPanel.add(filterField);
-
         renderer.setHorizontalAlignment(SwingConstants.CENTER);
         table.setFillsViewportHeight(true);
         table.getTableHeader().setReorderingAllowed(false);
@@ -525,8 +514,8 @@ public class ArticoloPane extends AContainer implements ActionListener {
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         buildFonctionality();
-        table.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
-            public void valueChanged(ListSelectionEvent e) {
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (table.getSelectedRow() >= 0) {
                 Articolo articolo = new Articolo();
                 articolo.setCodice(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 0)));
                 articolo.setDescrizione(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 1)));
@@ -534,13 +523,13 @@ public class ArticoloPane extends AContainer implements ActionListener {
                 articolo.setPosizione(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 3)));
                 articolo.setUnita(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 4)));
                 articolo.setFornitore(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 5)));
-
                 articolo.setPrezzo(Double.valueOf(table.getValueAt(table.getSelectedRow(), 6).toString().replace("€", "").replace(",", ".")));
                 articolo.setScorta(Integer.valueOf(tableModel.getValueAt(table.getSelectedRow(), 7).toString()));
                 articolo.setProvenienza(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 8)));
 
                 // set dei valori dell'articolo per l'aggiornamento
                 jtfCodice.setText(articolo.getCodice());
+                jtfCodice.setEditable(false);
                 jtfDescrizione.setText(articolo.getDescrizione());
                 jcbCategoria.setSelectedItem(articolo.getCategoria());
                 jcbPosizione.setSelectedItem(articolo.getPosizione());
@@ -549,23 +538,18 @@ public class ArticoloPane extends AContainer implements ActionListener {
                 jtfCurrency.setText("€ ".concat(String.valueOf(articolo.getPrezzo())).replace(".", ","));
                 jspScorta.setValue(articolo.getScorta());
                 jtfProvenienza.setText(articolo.getProvenienza());
-
             }
         });
 
 
-                scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setPreferredSize(new Dimension(1150, 420));
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         scrollPane.getViewport().setBackground(table.getBackground());
 
 
         internPanel.add(scrollPane);
-    }
-
-    protected void formattercurrency() {
-        jtfCurrency.setText(jtfCurrency.getText());
     }
 
     void formatButton(JButton btn) {
@@ -579,23 +563,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         btn.setPreferredSize(new Dimension(180, 40));
     }
 
-    public static ArrayList<String> loadProductAttribute(String attribute) {
-
-        ArrayList<String> lista = new ArrayList<>();
-        try {
-            Connection con = (new ConnectionManager()).getConnection();
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(String.format("SELECT* FROM %s_PRODOTTO", attribute));
-            while (rs.next())
-                lista.add(rs.getString(attribute));
-            stmt.close();
-            con.close();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-        return lista;
-    }
-
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -606,8 +573,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
             container.repaint();
         } else if (e.getSource() == btn_salva) {
             insertArticleToDB();
-            // inizializzazione del pannello
-            initArticlePane();
         } else if (e.getSource() == btn_list_categoria) {
             new CategoryPane(formatTitleFieldPane(e.getActionCommand()), IntStream.range(0, jcbCategoria.getItemCount()).mapToObj(i -> jcbCategoria.getItemAt(i)).collect(Collectors.toCollection(ArrayList::new)));
         } else if (e.getSource() == btn_list_unita) {
@@ -615,7 +580,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         } else if (e.getSource() == btn_list_posizione) {
             new PositionPane(formatTitleFieldPane(e.getActionCommand()), IntStream.range(0, jcbPosizione.getItemCount()).mapToObj(i -> jcbPosizione.getItemAt(i)).collect(Collectors.toCollection(ArrayList::new)));
         } else if (e.getSource() == btn_elimina) {
-            while (table.getSelectedRow() >= 0) {
+            while (table.getSelectedRow() != -1) {
                 try {
                     Connection con = (new ConnectionManager()).getConnection();
                     Statement stmt = con.createStatement();
@@ -626,80 +591,140 @@ public class ArticoloPane extends AContainer implements ActionListener {
                     System.out.println(ex.getMessage());
                 }
                 tableModel.removeRow(table.getSelectedRow());
+                initArticlePane();
             }
-        } else if (e.getSource() == btn_modifica) {
+        } else if (e.getSource() == btn_aggiorna) {
+            updateArticleToDB();
             initArticlePane();
-            /*
-            if (table.getSelectedRow() >= 0) {
-                Articolo articolo = new Articolo();
-                articolo.setCodice(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 0)));
-                articolo.setDescrizione(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 1)));
-                articolo.setCategoria(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 2)));
-                articolo.setPosizione(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 3)));
-                articolo.setUnita(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 4)));
-                articolo.setFornitore(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 5)));
-                //articolo.setPrezzo(Double.valueOf(table.getValueAt(table.getSelectedRow(), 6).toString()));
-                articolo.setScorta(Integer.valueOf(tableModel.getValueAt(table.getSelectedRow(), 7).toString()));
-                articolo.setProvenienza(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 8)));
-
-                // set dei valori dell'articolo per l'aggiornamento
-                jtfCodice.setText(articolo.getCodice());
-                jtfDescrizione.setText(articolo.getDescrizione());
-                jcbCategoria.setSelectedItem(articolo.getCategoria());
-                jcbPosizione.setSelectedItem(articolo.getPosizione());
-                jcbUnita.setSelectedItem(articolo.getUnita());
-                /*
-                jcbCategoria.setSelectedIndex(0);
-                jcbPosizione.setSelectedIndex(0);
-                jcbUnita.setSelectedIndex(0);
-
-
-                jtfFornitore.setText(articolo.getFornitore());
-                //jtfCurrency.setText(String.valueOf(articolo.getPrezzo()));
-                jspScorta.setValue(articolo.getScorta());
-                jtfProvenienza.setText(articolo.getProvenienza());
-
-            }
-            */
+        } else if (e.getSource() == btn_nuovo) {
+            initArticlePane();
         }
     }
 
-
     public void insertArticleToDB() {
+        Articolo articolo = new Articolo();
+        articolo.setCodice(jtfCodice.getText());
+        articolo.setDescrizione(jtfDescrizione.getText());
+        articolo.setCategoria(String.valueOf(jcbCategoria.getSelectedItem()));
+        articolo.setPosizione(String.valueOf(jcbPosizione.getSelectedItem()));
+        articolo.setUnita(String.valueOf(jcbUnita.getSelectedItem()));
+        articolo.setFornitore(jtfFornitore.getText());
+        articolo.setPrezzo(Double.valueOf(jtfCurrency.getText().replace("€", "").replace(",", ".")));
+        articolo.setScorta(Integer.valueOf(jspScorta.getValue().toString()));
+        articolo.setProvenienza(jtfProvenienza.getText());
+
+        if (articolo.getCodice().isEmpty()) {
+        } else {
+            if (checkCodice(articolo.getCodice())) {
+                showMessageDialog(container, "Articolo già presente", "Info Dialog", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    Connection con = (new ConnectionManager()).getConnection();
+                    PreparedStatement preparedStmt = con.prepareStatement("INSERT INTO ARTICOLO VALUES (?, ?, ?, ?, ?,?,?,?,?)");
+                    preparedStmt.setString(1, articolo.getCodice());
+                    preparedStmt.setString(2, articolo.getDescrizione());
+                    preparedStmt.setString(3, articolo.getCategoria());
+                    preparedStmt.setString(4, articolo.getPosizione());
+                    preparedStmt.setString(5, articolo.getUnita());
+                    preparedStmt.setString(6, articolo.getFornitore());
+                    preparedStmt.setDouble(7, articolo.getPrezzo());
+                    preparedStmt.setInt(8, articolo.getScorta());
+                    preparedStmt.setString(9, articolo.getProvenienza());
+                    preparedStmt.execute();
+                    con.close();
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+                tableModel.addRow(new String[]{articolo.getCodice(), articolo.getDescrizione(), articolo.getCategoria(), articolo.getPosizione(), articolo.getUnita(), articolo.getFornitore(), String.valueOf(articolo.getPrezzo()).replace(".", ",").concat(" €"), String.valueOf(articolo.getScorta()), articolo.getProvenienza()});
+                initArticlePane();
+                showMessageDialog(container, "Articolo inserito", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+    }
+
+    public void updateArticleToDB() {
+
+        Articolo articolo = new Articolo();
+        articolo.setCodice(jtfCodice.getText());
+        articolo.setDescrizione(jtfDescrizione.getText());
+        articolo.setCategoria(String.valueOf(jcbCategoria.getSelectedItem()));
+        articolo.setPosizione(String.valueOf(jcbPosizione.getSelectedItem()));
+        articolo.setUnita(String.valueOf(jcbUnita.getSelectedItem()));
+        articolo.setFornitore(jtfFornitore.getText());
+        articolo.setPrezzo(Double.valueOf(jtfCurrency.getText().replace("€", "").replace(",", ".")));
+        articolo.setScorta(Integer.valueOf(jspScorta.getValue().toString()));
+        articolo.setProvenienza(jtfProvenienza.getText());
+
+
+        if (articolo.getCodice().isEmpty()) {
+        } else {
+            if (checkCodice(articolo.getCodice())) {
+                if(table.getSelectedRow() == -1){
+                    showMessageDialog(container, "Selezionare l'articolo", "Info Dialog", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                try {
+                    Connection con = (new ConnectionManager()).getConnection();
+                    PreparedStatement ps = con.prepareStatement("UPDATE ARTICOLO SET DESCRIZIONE=?,CATEGORIA=?,POSIZIONE=?,UNITA=?,FORNITORE=?,PREZZO=?,SCORTA=?,PROVENIENZA=? WHERE CODICE=?");
+                    ps.setString(1, articolo.getDescrizione());
+                    ps.setString(2, articolo.getCategoria());
+                    ps.setString(3, articolo.getPosizione());
+                    ps.setString(4, articolo.getUnita());
+                    ps.setString(5, articolo.getFornitore());
+                    ps.setDouble(6, articolo.getPrezzo());
+                    ps.setInt(7, articolo.getScorta());
+                    ps.setString(8, articolo.getProvenienza());
+                    ps.setString(9, articolo.getCodice());
+                    ps.execute();
+
+                    tableModel.setValueAt(articolo.getDescrizione(), table.getSelectedRow(), 1);
+                    tableModel.setValueAt(articolo.getCategoria(), table.getSelectedRow(), 2);
+                    tableModel.setValueAt(articolo.getPosizione(), table.getSelectedRow(), 3);
+                    tableModel.setValueAt(articolo.getUnita(), table.getSelectedRow(), 4);
+                    tableModel.setValueAt(articolo.getFornitore(), table.getSelectedRow(), 5);
+                    tableModel.setValueAt(String.valueOf(articolo.getPrezzo()).replace(".", ",").concat(" €"), table.getSelectedRow(), 6);
+                    tableModel.setValueAt(articolo.getScorta(), table.getSelectedRow(), 7);
+                    tableModel.setValueAt(articolo.getProvenienza(), table.getSelectedRow(), 8);
+                    con.close();
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+                initArticlePane();
+                showMessageDialog(container, "Articolo aggiornato", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                showMessageDialog(container, "Articolo inesistente", "Info Dialog", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private boolean checkCodice(String codice) {
+
+        boolean isPresente = false;
         try {
             Connection con = (new ConnectionManager()).getConnection();
-            PreparedStatement preparedStmt = con.prepareStatement("INSERT INTO ARTICOLO VALUES (?, ?, ?, ?, ?,?,?,?,?)");
-            preparedStmt.setString(1, jtfCodice.getText());
-            preparedStmt.setString(2, jtfDescrizione.getText());
-            preparedStmt.setString(3, String.valueOf(jcbCategoria.getSelectedItem()));
-            preparedStmt.setString(4, String.valueOf(jcbPosizione.getSelectedItem()));
-            preparedStmt.setString(5, String.valueOf(jcbUnita.getSelectedItem()));
-            preparedStmt.setString(6, jtfFornitore.getText());
-            preparedStmt.setDouble(7, Double.parseDouble(jtfCurrency.getText().replace("€", "").replace(",", ".").trim()));
-            preparedStmt.setInt(8, Integer.parseInt(jspScorta.getValue().toString()));
-            preparedStmt.setString(9, jtfProvenienza.getText());
-            preparedStmt.execute();
-
-            // Insert to table
-            tableModel.addRow(new String[]{jtfCodice.getText(), jtfDescrizione.getText(), String.valueOf(jcbCategoria.getSelectedItem()),
-                    String.valueOf(jcbPosizione.getSelectedItem()), String.valueOf(jcbUnita.getSelectedItem()), jtfFornitore.getText()
-                    , jtfCurrency.getText().replace(",", ".").trim(), jspScorta.getValue().toString(), jtfProvenienza.getText()});
-
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery(String.format("SELECT* FROM ARTICOLO WHERE CODICE='%s'", codice));
+            while (rs.next()) isPresente = true;
+            stmt.close();
             con.close();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
         }
+        return isPresente;
     }
 
     // inizializzazione del campi del pannello degli articoli
     void initArticlePane() {
+        table.getSelectionModel().clearSelection();
         jtfCodice.setText(null);
+        jtfCodice.setEditable(true);
         jtfDescrizione.setText(null);
         jcbCategoria.setSelectedIndex(0);
         jcbPosizione.setSelectedIndex(0);
         jcbUnita.setSelectedIndex(0);
         jtfFornitore.setText(null);
-        jtfCurrency.setText(null);
+        jtfCurrency.setValue(0);
         jspScorta.setValue(0);
         jtfProvenienza.setText(null);
     }
@@ -733,9 +758,21 @@ public class ArticoloPane extends AContainer implements ActionListener {
         return list_articles;
     }
 
-
     String formatTitleFieldPane(String field) {
         return field.replace("<html><center>", "").replace("</center></html>", "");
     }
 
+    // Gestione attributi del prodotto
+    public enum Attribute {
+        CATEGORIA("CATEGORIA"), UNITA("UNITA"), POSIZIONE("POSIZIONE");
+        String attribute;
+
+        Attribute(String s) {
+            attribute = s;
+        }
+
+        public String getAttribute() {
+            return attribute;
+        }
+    }
 }

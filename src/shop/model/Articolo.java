@@ -36,17 +36,13 @@ public class Articolo {
         this.categoria = categoria;
     }
 
-    public String getPosizione() {
-        return posizione;
-    }
+    public String getPosizione() { return posizione; }
 
     public void setPosizione(String posizione) {
         this.posizione = posizione;
     }
 
-    public String getUnita() {
-        return unita;
-    }
+    public String getUnita() { return unita; }
 
     public void setUnita(String unita) {
         this.unita = unita;
@@ -83,10 +79,6 @@ public class Articolo {
     public void setProvenienza(String provenienza) {
         this.provenienza = provenienza;
     }
-
-
-
-
 }
 
 

@@ -176,6 +176,9 @@ public class LoginPane extends AContainer implements ActionListener {
                     container.revalidate();
                     container.add(new Pannello().getPanel());
                     container.repaint();
+                }else{
+                    JOptionPane.showMessageDialog(container, "Credenziali errati", "Info Dialog",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
             stmt.close();
