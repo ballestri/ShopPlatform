@@ -22,7 +22,6 @@ import static shop.utils.DesktopRender.FONT_FAMILY;
 public class ArticoloPane extends AContainer implements ActionListener {
 
     private static final Color JTF_COLOR = new Color(46, 134, 193);
-    //private static final String FONT_FAMILY = "HelveticaNeue";
     public static JComboBox<String> jcbCategoria, jcbUnita, jcbPosizione;
     protected Font font;
     // la JToolbar
@@ -34,7 +33,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
     protected JTextField jtfCodice, jtfDescrizione, jtfFornitore, jtfProvenienza;
 
     protected JTextField filterField;
-
     protected JFormattedTextField jtfCurrency;
     protected JSpinner jspScorta;
     // Pannello delle funzionalita'
@@ -43,7 +41,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
     JButton btn_list_categoria, btn_list_posizione, btn_list_unita, btn_nuovo, btn_aggiorna, btn_elimina, btn_salva;
     JScrollPane scrollPane;
     RoundedPanel actionPaneWrapper;
-
     // Creazione della tabella che contiene le categorie
     DefaultTableModel tableModel;
     JTableHeader tableHeader;
@@ -52,7 +49,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
     public ArticoloPane() {
         initPanel();
     }
-
     // Informazioni sull'articolo
 
     public static ArrayList<String> loadProductAttribute(String attribute) {
@@ -99,7 +95,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
         build();
         buildProduct();
-        //buildFonctionality();
         buildArticleDetails();
 
         toolbar.setFloatable(false);
@@ -489,7 +484,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         table.setFillsViewportHeight(true);
         table.getTableHeader().setReorderingAllowed(false);
         table.getTableHeader().setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
-        table.setFont(new Font(FONT_FAMILY, Font.PLAIN, 16));
+        table.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
         table.setRowHeight(25);
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -520,6 +515,9 @@ public class ArticoloPane extends AContainer implements ActionListener {
                 jtfProvenienza.setText(articolo.getProvenienza());
             }
         });
+
+        table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);

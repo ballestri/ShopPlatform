@@ -177,11 +177,9 @@ public class PositionPane extends JFrame implements ActionListener {
 
             try {
                 Connection con = (new ConnectionManager()).getConnection();
+                PreparedStatement ps = con.prepareStatement("DELETE FROM POSIZIONE_PRODOTTO");
+                ps.execute();
                 Statement stmt = con.createStatement();
-                ResultSet rs = stmt.executeQuery( "SELECT* FROM POSIZIONE_PRODOTTO");
-                while (rs.next())
-                    list_posizione.remove(rs.getString("POSIZIONE"));
-
                 // CATEGORIA DI PRODOTTI
                 for (String s : list_posizione) {
                     stmt.executeUpdate(String.format("INSERT INTO POSIZIONE_PRODOTTO VALUES ('%s')", s));

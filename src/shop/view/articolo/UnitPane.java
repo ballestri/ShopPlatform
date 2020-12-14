@@ -177,11 +177,9 @@ public class UnitPane extends JFrame implements ActionListener {
 
             try {
                 Connection con = (new ConnectionManager()).getConnection();
+                PreparedStatement ps = con.prepareStatement("DELETE FROM UNITA_PRODOTTO");
+                ps.execute();
                 Statement stmt = con.createStatement();
-                ResultSet rs = stmt.executeQuery( "SELECT* FROM UNITA_PRODOTTO");
-                while (rs.next())
-                    list_unita.remove(rs.getString("UNITA"));
-
                 // CATEGORIA DI PRODOTTI
                 for (String s : list_unita) {
                     stmt.executeUpdate(String.format("INSERT INTO UNITA_PRODOTTO VALUES ('%s')", s));

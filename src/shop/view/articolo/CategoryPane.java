@@ -132,9 +132,6 @@ public class CategoryPane extends JFrame implements ActionListener {
         table.setFont(new Font("HelveticaNeue", Font.BOLD, 16));
         table.setRowHeight(25);
 
-
-
-
         IntStream.range(0, elements.size()).forEach(i -> tableModel.addRow(new String[]{elements.get(i)}));
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -182,11 +179,9 @@ public class CategoryPane extends JFrame implements ActionListener {
 
             try {
                 Connection con = (new ConnectionManager()).getConnection();
+                PreparedStatement ps = con.prepareStatement("DELETE FROM CATEGORIA_PRODOTTO");
+                ps.execute();
                 Statement stmt = con.createStatement();
-                ResultSet rs = stmt.executeQuery( "SELECT* FROM CATEGORIA_PRODOTTO");
-                while (rs.next())
-                    categories.remove(rs.getString("CATEGORIA"));
-
                 // CATEGORIA DI PRODOTTI
                 for (String s : categories) {
                     stmt.executeUpdate(String.format("INSERT INTO CATEGORIA_PRODOTTO VALUES ('%s')", s));
