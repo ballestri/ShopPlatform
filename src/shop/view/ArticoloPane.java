@@ -1,37 +1,19 @@
 package shop.view;
 
-import shop.controller.article.RendererHighlighted;
-import shop.controller.article.RowFilterUtil;
+import shop.controller.article.*;
 import shop.db.ConnectionManager;
-import shop.model.Articolo;
-import shop.utils.ComboRenderer;
-import shop.utils.DesktopRender;
-import shop.utils.RoundedPanel;
-import shop.view.articolo.CategoryPane;
-import shop.view.articolo.PositionPane;
-import shop.view.articolo.UnitPane;
-
+import shop.model.*;
+import shop.utils.*;
+import shop.view.articolo.*;
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
+import javax.swing.border.*;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.awt.event.*;
+import java.sql.*;
+import java.text.*;
+import java.util.*;
+import java.util.stream.*;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 import static shop.utils.DesktopRender.FONT_FAMILY;
@@ -277,7 +259,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jtfProvenienza.setFont(font);
         jtfProvenienza.setBorder(new LineBorder(Color.BLACK));
 
-
         // aggiunto nel pannelli interno
         articlePane.setLayout(new GridBagLayout());
         GridBagConstraints gc = new GridBagConstraints();
@@ -426,7 +407,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
         internPanel.add(articlePane, BorderLayout.NORTH);
         internPanel.add(actionPaneWrapper);
-
     }
 
     void buildFonctionality() {
@@ -466,10 +446,10 @@ public class ArticoloPane extends AContainer implements ActionListener {
         actionPane.add(btn_nuovo, ca);
 
         // Gestione degli eventi
-        btn_nuovo.addActionListener(this);
-        btn_salva.addActionListener(this);
-        btn_aggiorna.addActionListener(this);
-        btn_elimina.addActionListener(this);
+        btn_salva.addActionListener(e -> insertArticleToDB());
+        btn_aggiorna.addActionListener(e ->updateArticleToDB() );
+        btn_elimina.addActionListener(e->deleteArticleFromDB());
+        btn_nuovo.addActionListener(e -> initArticlePane());
 
         actionPaneWrapper.add(actionPane, BorderLayout.EAST);
     }
@@ -541,13 +521,11 @@ public class ArticoloPane extends AContainer implements ActionListener {
             }
         });
 
-
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setPreferredSize(new Dimension(1150, 420));
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         scrollPane.getViewport().setBackground(table.getBackground());
-
 
         internPanel.add(scrollPane);
     }
@@ -571,32 +549,27 @@ public class ArticoloPane extends AContainer implements ActionListener {
             container.revalidate();
             container.add(new AnagraficaPane().getPanel());
             container.repaint();
-        } else if (e.getSource() == btn_salva) {
-            insertArticleToDB();
-        } else if (e.getSource() == btn_list_categoria) {
+        }else if (e.getSource() == btn_list_categoria) {
             new CategoryPane(formatTitleFieldPane(e.getActionCommand()), IntStream.range(0, jcbCategoria.getItemCount()).mapToObj(i -> jcbCategoria.getItemAt(i)).collect(Collectors.toCollection(ArrayList::new)));
         } else if (e.getSource() == btn_list_unita) {
             new UnitPane(formatTitleFieldPane(e.getActionCommand()), IntStream.range(0, jcbUnita.getItemCount()).mapToObj(i -> jcbUnita.getItemAt(i)).collect(Collectors.toCollection(ArrayList::new)));
         } else if (e.getSource() == btn_list_posizione) {
             new PositionPane(formatTitleFieldPane(e.getActionCommand()), IntStream.range(0, jcbPosizione.getItemCount()).mapToObj(i -> jcbPosizione.getItemAt(i)).collect(Collectors.toCollection(ArrayList::new)));
-        } else if (e.getSource() == btn_elimina) {
-            while (table.getSelectedRow() != -1) {
-                try {
-                    Connection con = (new ConnectionManager()).getConnection();
-                    Statement stmt = con.createStatement();
-                    stmt.executeUpdate(String.format("DELETE FROM ARTICOLO WHERE CODICE='%s'", table.getValueAt(table.getSelectedRow(), 0)));
-                    stmt.close();
-                    con.close();
-                } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
-                }
-                tableModel.removeRow(table.getSelectedRow());
-                initArticlePane();
+        }
+    }
+
+    private void deleteArticleFromDB(){
+        while (table.getSelectedRow() != -1) {
+            try {
+                Connection con = (new ConnectionManager()).getConnection();
+                Statement stmt = con.createStatement();
+                stmt.executeUpdate(String.format("DELETE FROM ARTICOLO WHERE CODICE='%s'", table.getValueAt(table.getSelectedRow(), 0)));
+                stmt.close();
+                con.close();
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
             }
-        } else if (e.getSource() == btn_aggiorna) {
-            updateArticleToDB();
-            initArticlePane();
-        } else if (e.getSource() == btn_nuovo) {
+            tableModel.removeRow(table.getSelectedRow());
             initArticlePane();
         }
     }
@@ -614,6 +587,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         articolo.setProvenienza(jtfProvenienza.getText());
 
         if (articolo.getCodice().isEmpty()) {
+            showMessageDialog(container, "Codice articolo vuoto", "Info Dialog", JOptionPane.ERROR_MESSAGE);
         } else {
             if (checkCodice(articolo.getCodice())) {
                 showMessageDialog(container, "Articolo già presente", "Info Dialog", JOptionPane.ERROR_MESSAGE);
@@ -636,14 +610,13 @@ public class ArticoloPane extends AContainer implements ActionListener {
                     System.out.println(e.getMessage());
                 }
                 tableModel.addRow(new String[]{articolo.getCodice(), articolo.getDescrizione(), articolo.getCategoria(), articolo.getPosizione(), articolo.getUnita(), articolo.getFornitore(), String.valueOf(articolo.getPrezzo()).replace(".", ",").concat(" €"), String.valueOf(articolo.getScorta()), articolo.getProvenienza()});
-                initArticlePane();
                 showMessageDialog(container, "Articolo inserito", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
             }
         }
+        initArticlePane();
     }
 
-    public void updateArticleToDB() {
-
+    private void updateArticleToDB() {
         Articolo articolo = new Articolo();
         articolo.setCodice(jtfCodice.getText());
         articolo.setDescrizione(jtfDescrizione.getText());
@@ -655,15 +628,14 @@ public class ArticoloPane extends AContainer implements ActionListener {
         articolo.setScorta(Integer.valueOf(jspScorta.getValue().toString()));
         articolo.setProvenienza(jtfProvenienza.getText());
 
-
         if (articolo.getCodice().isEmpty()) {
+            showMessageDialog(container, "Codice articolo vuoto", "Info Dialog", JOptionPane.ERROR_MESSAGE);
         } else {
             if (checkCodice(articolo.getCodice())) {
-                if(table.getSelectedRow() == -1){
+                if (table.getSelectedRow() == -1) {
                     showMessageDialog(container, "Selezionare l'articolo", "Info Dialog", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-
                 try {
                     Connection con = (new ConnectionManager()).getConnection();
                     PreparedStatement ps = con.prepareStatement("UPDATE ARTICOLO SET DESCRIZIONE=?,CATEGORIA=?,POSIZIONE=?,UNITA=?,FORNITORE=?,PREZZO=?,SCORTA=?,PROVENIENZA=? WHERE CODICE=?");
@@ -690,12 +662,12 @@ public class ArticoloPane extends AContainer implements ActionListener {
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
-                initArticlePane();
                 showMessageDialog(container, "Articolo aggiornato", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 showMessageDialog(container, "Articolo inesistente", "Info Dialog", JOptionPane.ERROR_MESSAGE);
             }
         }
+        initArticlePane();
     }
 
     private boolean checkCodice(String codice) {
