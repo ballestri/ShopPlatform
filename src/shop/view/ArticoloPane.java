@@ -4,7 +4,10 @@ import shop.controller.article.*;
 import shop.db.ConnectionManager;
 import shop.model.*;
 import shop.utils.*;
-import shop.view.articolo.*;
+import shop.view.articolo.CategoryPane;
+import shop.view.articolo.PositionPane;
+import shop.view.articolo.UnitPane;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
@@ -14,8 +17,7 @@ import java.sql.*;
 import java.text.*;
 import java.util.*;
 import java.util.stream.*;
-
-import static javax.swing.JOptionPane.showMessageDialog;
+import static shop.view.articolo.controller.ArticleDbOperation.*;
 import static shop.utils.DesktopRender.FONT_FAMILY;
 
 
@@ -30,11 +32,11 @@ public class ArticoloPane extends AContainer implements ActionListener {
     protected JButton btn_close;
     // Informazioni sull'articolo
     protected JLabel lblCodice, lblDescrizione, lblCategoria, lblPosizione, lblUnita, lblFornitore, lblPrezzo, lblScorta, lblProvenienza;
-    protected JTextField jtfCodice, jtfDescrizione, jtfFornitore, jtfProvenienza;
+    public static JTextField jtfCodice, jtfDescrizione, jtfFornitore, jtfProvenienza;
 
     protected JTextField filterField;
-    protected JFormattedTextField jtfCurrency;
-    protected JSpinner jspScorta;
+    public static JFormattedTextField jtfCurrency;
+    public static JSpinner jspScorta;
     // Pannello delle funzionalita'
     JPanel internPanel, wrapperPane;
     RoundedPanel articlePane, informationPane;
@@ -42,30 +44,12 @@ public class ArticoloPane extends AContainer implements ActionListener {
     JScrollPane scrollPane;
     RoundedPanel actionPaneWrapper;
     // Creazione della tabella che contiene le categorie
-    DefaultTableModel tableModel;
+    public static DefaultTableModel tableModel;
     JTableHeader tableHeader;
-    JTable table;
+    public static JTable table;
 
     public ArticoloPane() {
         initPanel();
-    }
-    // Informazioni sull'articolo
-
-    public static ArrayList<String> loadProductAttribute(String attribute) {
-
-        ArrayList<String> lista = new ArrayList<>();
-        try {
-            Connection con = (new ConnectionManager()).getConnection();
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(String.format("SELECT* FROM %s_PRODOTTO", attribute));
-            while (rs.next())
-                lista.add(rs.getString(attribute));
-            stmt.close();
-            con.close();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-        return lista;
     }
 
     public void initPanel() {
@@ -116,9 +100,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         // pannello delle azioni
         actionPaneWrapper = new RoundedPanel();
         actionPaneWrapper.setPreferredSize(new Dimension(1150, 70));
-        actionPaneWrapper.setBackground(articlePane.getBackground());
-
-        wrapperPane.setBounds(180, 80, 1200, 750);
+        wrapperPane.setBounds(180, 110, 1200, 750);
         wrapperPane.setBackground(container.getBackground());
 
         // I pulsanti della JToolbar
@@ -143,12 +125,13 @@ public class ArticoloPane extends AContainer implements ActionListener {
         formatButton(btn_list_posizione);
         formatButton(btn_list_unita);
 
-        informationPane.add(btn_list_categoria);
         informationPane.add(btn_list_posizione);
         informationPane.add(btn_list_unita);
+        informationPane.add(btn_list_categoria);
+
 
         wrapperPane.setLayout(new BorderLayout());
-        informationPane.setBackground(articlePane.getBackground());
+        //informationPane.setBackground(articlePane.getBackground());
         wrapperPane.add(informationPane, BorderLayout.NORTH);
 
         wrapperPane.add(internPanel, BorderLayout.SOUTH);
@@ -208,7 +191,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jcbUnita.setRenderer(new ComboRenderer());
         jcbUnita.setFont(font);
         jcbUnita.addActionListener(this);
-
 
         lblFornitore = new JLabel("Fornitore");
         lblFornitore.setFont(font);
@@ -421,10 +403,10 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
         actionPaneWrapper.add(searchPane, BorderLayout.WEST);
 
-        btn_nuovo = new JButton(DesktopRender.formatButton("+ Nuovo"));
-        btn_salva = new JButton(DesktopRender.formatButton("Salva"));
-        btn_aggiorna = new JButton(DesktopRender.formatButton("Aggiorna"));
-        btn_elimina = new JButton(DesktopRender.formatButton("Elimina"));
+        btn_nuovo = new JButton(DesktopRender.formatButton("+ New"));
+        btn_salva = new JButton(DesktopRender.formatButton("Save"));
+        btn_aggiorna = new JButton(DesktopRender.formatButton("Update"));
+        btn_elimina = new JButton(DesktopRender.formatButton("Delete"));
 
         JPanel actionPane = new JPanel();
         actionPane.setLayout(new GridBagLayout());
@@ -455,6 +437,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
+
         };
 
         table = new JTable(tableModel) {
@@ -487,37 +470,12 @@ public class ArticoloPane extends AContainer implements ActionListener {
         table.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
         table.setRowHeight(25);
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        buildFonctionality();
-        table.getSelectionModel().addListSelectionListener(e -> {
-            if (table.getSelectedRow() >= 0) {
-                Articolo articolo = new Articolo();
-                articolo.setCodice(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 0)));
-                articolo.setDescrizione(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 1)));
-                articolo.setCategoria(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 2)));
-                articolo.setPosizione(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 3)));
-                articolo.setUnita(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 4)));
-                articolo.setFornitore(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 5)));
-                articolo.setPrezzo(Double.valueOf(table.getValueAt(table.getSelectedRow(), 6).toString().replace("€", "").replace(",", ".")));
-                articolo.setScorta(Integer.valueOf(tableModel.getValueAt(table.getSelectedRow(), 7).toString()));
-                articolo.setProvenienza(String.valueOf(tableModel.getValueAt(table.getSelectedRow(), 8)));
-
-                // set dei valori dell'articolo per l'aggiornamento
-                jtfCodice.setText(articolo.getCodice());
-                jtfCodice.setEditable(false);
-                jtfDescrizione.setText(articolo.getDescrizione());
-                jcbCategoria.setSelectedItem(articolo.getCategoria());
-                jcbPosizione.setSelectedItem(articolo.getPosizione());
-                jcbUnita.setSelectedItem(articolo.getUnita());
-                jtfFornitore.setText(articolo.getFornitore());
-                jtfCurrency.setText("€ ".concat(String.valueOf(articolo.getPrezzo())).replace(".", ","));
-                jspScorta.setValue(articolo.getScorta());
-                jtfProvenienza.setText(articolo.getProvenienza());
-            }
-        });
-
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
+        buildFonctionality();
+
+
+        table.getSelectionModel().addListSelectionListener(e -> getSelectedArticle());
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -526,6 +484,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         scrollPane.getViewport().setBackground(table.getBackground());
 
         internPanel.add(scrollPane);
+
     }
 
     void formatButton(JButton btn) {
@@ -556,178 +515,34 @@ public class ArticoloPane extends AContainer implements ActionListener {
         }
     }
 
-    private void deleteArticleFromDB(){
-        while (table.getSelectedRow() != -1) {
-            try {
-                Connection con = (new ConnectionManager()).getConnection();
-                Statement stmt = con.createStatement();
-                stmt.executeUpdate(String.format("DELETE FROM ARTICOLO WHERE CODICE='%s'", table.getValueAt(table.getSelectedRow(), 0)));
-                stmt.close();
-                con.close();
-            } catch (Exception ex) {
-                System.out.println(ex.getMessage());
-            }
-            tableModel.removeRow(table.getSelectedRow());
-            initArticlePane();
+    public void getSelectedArticle(){
+        if (table.getSelectedRow() >= 0) {
+            Articolo articolo = new Articolo();
+            articolo.setCodice(String.valueOf(table.getValueAt(table.getSelectedRow(), 0)));
+            articolo.setDescrizione(String.valueOf(table.getValueAt(table.getSelectedRow(), 1)));
+            articolo.setCategoria(String.valueOf(table.getValueAt(table.getSelectedRow(), 2)));
+            articolo.setPosizione(String.valueOf(table.getValueAt(table.getSelectedRow(), 3)));
+            articolo.setUnita(String.valueOf(table.getValueAt(table.getSelectedRow(), 4)));
+            articolo.setFornitore(String.valueOf(table.getValueAt(table.getSelectedRow(), 5)));
+            articolo.setPrezzo(Double.valueOf(table.getValueAt(table.getSelectedRow(), 6).toString().replace("€", "").replace(",", ".")));
+            articolo.setScorta(Integer.valueOf(table.getValueAt(table.getSelectedRow(), 7).toString()));
+            articolo.setProvenienza(String.valueOf(table.getValueAt(table.getSelectedRow(), 8)));
+
+            // set dei valori dell'articolo per l'aggiornamento
+            jtfCodice.setText(articolo.getCodice());
+            jtfCodice.setEditable(false);
+            jtfDescrizione.setText(articolo.getDescrizione());
+            jcbCategoria.setSelectedItem(articolo.getCategoria());
+            jcbPosizione.setSelectedItem(articolo.getPosizione());
+            jcbUnita.setSelectedItem(articolo.getUnita());
+            jtfFornitore.setText(articolo.getFornitore());
+            jtfCurrency.setText("€ ".concat(String.valueOf(articolo.getPrezzo())).replace(".", ","));
+            jspScorta.setValue(articolo.getScorta());
+            jtfProvenienza.setText(articolo.getProvenienza());
         }
+        table.revalidate();
+        table.repaint();
     }
-
-    public void insertArticleToDB() {
-        Articolo articolo = new Articolo();
-        articolo.setCodice(jtfCodice.getText());
-        articolo.setDescrizione(jtfDescrizione.getText());
-        articolo.setCategoria(String.valueOf(jcbCategoria.getSelectedItem()));
-        articolo.setPosizione(String.valueOf(jcbPosizione.getSelectedItem()));
-        articolo.setUnita(String.valueOf(jcbUnita.getSelectedItem()));
-        articolo.setFornitore(jtfFornitore.getText());
-        articolo.setPrezzo(Double.valueOf(jtfCurrency.getText().replace("€", "").replace(",", ".")));
-        articolo.setScorta(Integer.valueOf(jspScorta.getValue().toString()));
-        articolo.setProvenienza(jtfProvenienza.getText());
-
-        if (articolo.getCodice().isEmpty()) {
-            showMessageDialog(container, "Codice articolo vuoto", "Info Dialog", JOptionPane.ERROR_MESSAGE);
-        } else {
-            if (checkCodice(articolo.getCodice())) {
-                showMessageDialog(container, "Articolo già presente", "Info Dialog", JOptionPane.ERROR_MESSAGE);
-            } else {
-                try {
-                    Connection con = (new ConnectionManager()).getConnection();
-                    PreparedStatement preparedStmt = con.prepareStatement("INSERT INTO ARTICOLO VALUES (?, ?, ?, ?, ?,?,?,?,?)");
-                    preparedStmt.setString(1, articolo.getCodice());
-                    preparedStmt.setString(2, articolo.getDescrizione());
-                    preparedStmt.setString(3, articolo.getCategoria());
-                    preparedStmt.setString(4, articolo.getPosizione());
-                    preparedStmt.setString(5, articolo.getUnita());
-                    preparedStmt.setString(6, articolo.getFornitore());
-                    preparedStmt.setDouble(7, articolo.getPrezzo());
-                    preparedStmt.setInt(8, articolo.getScorta());
-                    preparedStmt.setString(9, articolo.getProvenienza());
-                    preparedStmt.execute();
-                    con.close();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-                tableModel.addRow(new String[]{articolo.getCodice(), articolo.getDescrizione(), articolo.getCategoria(), articolo.getPosizione(), articolo.getUnita(), articolo.getFornitore(), String.valueOf(articolo.getPrezzo()).replace(".", ",").concat(" €"), String.valueOf(articolo.getScorta()), articolo.getProvenienza()});
-                showMessageDialog(container, "Articolo inserito", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
-            }
-        }
-        initArticlePane();
-    }
-
-    private void updateArticleToDB() {
-        Articolo articolo = new Articolo();
-        articolo.setCodice(jtfCodice.getText());
-        articolo.setDescrizione(jtfDescrizione.getText());
-        articolo.setCategoria(String.valueOf(jcbCategoria.getSelectedItem()));
-        articolo.setPosizione(String.valueOf(jcbPosizione.getSelectedItem()));
-        articolo.setUnita(String.valueOf(jcbUnita.getSelectedItem()));
-        articolo.setFornitore(jtfFornitore.getText());
-        articolo.setPrezzo(Double.valueOf(jtfCurrency.getText().replace("€", "").replace(",", ".")));
-        articolo.setScorta(Integer.valueOf(jspScorta.getValue().toString()));
-        articolo.setProvenienza(jtfProvenienza.getText());
-
-        if (articolo.getCodice().isEmpty()) {
-            showMessageDialog(container, "Codice articolo vuoto", "Info Dialog", JOptionPane.ERROR_MESSAGE);
-        } else {
-            if (checkCodice(articolo.getCodice())) {
-                if (table.getSelectedRow() == -1) {
-                    showMessageDialog(container, "Selezionare l'articolo", "Info Dialog", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                try {
-                    Connection con = (new ConnectionManager()).getConnection();
-                    PreparedStatement ps = con.prepareStatement("UPDATE ARTICOLO SET DESCRIZIONE=?,CATEGORIA=?,POSIZIONE=?,UNITA=?,FORNITORE=?,PREZZO=?,SCORTA=?,PROVENIENZA=? WHERE CODICE=?");
-                    ps.setString(1, articolo.getDescrizione());
-                    ps.setString(2, articolo.getCategoria());
-                    ps.setString(3, articolo.getPosizione());
-                    ps.setString(4, articolo.getUnita());
-                    ps.setString(5, articolo.getFornitore());
-                    ps.setDouble(6, articolo.getPrezzo());
-                    ps.setInt(7, articolo.getScorta());
-                    ps.setString(8, articolo.getProvenienza());
-                    ps.setString(9, articolo.getCodice());
-                    ps.execute();
-
-                    tableModel.setValueAt(articolo.getDescrizione(), table.getSelectedRow(), 1);
-                    tableModel.setValueAt(articolo.getCategoria(), table.getSelectedRow(), 2);
-                    tableModel.setValueAt(articolo.getPosizione(), table.getSelectedRow(), 3);
-                    tableModel.setValueAt(articolo.getUnita(), table.getSelectedRow(), 4);
-                    tableModel.setValueAt(articolo.getFornitore(), table.getSelectedRow(), 5);
-                    tableModel.setValueAt(String.valueOf(articolo.getPrezzo()).replace(".", ",").concat(" €"), table.getSelectedRow(), 6);
-                    tableModel.setValueAt(articolo.getScorta(), table.getSelectedRow(), 7);
-                    tableModel.setValueAt(articolo.getProvenienza(), table.getSelectedRow(), 8);
-                    con.close();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-                showMessageDialog(container, "Articolo aggiornato", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                showMessageDialog(container, "Articolo inesistente", "Info Dialog", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-        initArticlePane();
-    }
-
-    private boolean checkCodice(String codice) {
-
-        boolean isPresente = false;
-        try {
-            Connection con = (new ConnectionManager()).getConnection();
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(String.format("SELECT* FROM ARTICOLO WHERE CODICE='%s'", codice));
-            while (rs.next()) isPresente = true;
-            stmt.close();
-            con.close();
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        }
-        return isPresente;
-    }
-
-    // inizializzazione del campi del pannello degli articoli
-    void initArticlePane() {
-        table.getSelectionModel().clearSelection();
-        jtfCodice.setText(null);
-        jtfCodice.setEditable(true);
-        jtfDescrizione.setText(null);
-        jcbCategoria.setSelectedIndex(0);
-        jcbPosizione.setSelectedIndex(0);
-        jcbUnita.setSelectedIndex(0);
-        jtfFornitore.setText(null);
-        jtfCurrency.setValue(0);
-        jspScorta.setValue(0);
-        jtfProvenienza.setText(null);
-    }
-
-    public ArrayList<Articolo> loadArticleFromDB() {
-
-        ArrayList<Articolo> list_articles = new ArrayList<>();
-        try {
-            Connection con = (new ConnectionManager()).getConnection();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT* FROM ARTICOLO");
-
-            while (rs.next()) {
-                Articolo article = new Articolo();
-                article.setCodice(rs.getString("CODICE"));
-                article.setDescrizione(rs.getString("DESCRIZIONE"));
-                article.setCategoria(rs.getString("CATEGORIA"));
-                article.setPosizione(rs.getString("POSIZIONE"));
-                article.setUnita(rs.getString("UNITA"));
-                article.setFornitore(rs.getString("FORNITORE"));
-                article.setPrezzo(Double.valueOf(rs.getString("PREZZO")));
-                article.setScorta(Integer.valueOf(rs.getString("SCORTA")));
-                article.setProvenienza(rs.getString("PROVENIENZA"));
-                list_articles.add(article);
-            }
-            st.close();
-            con.close();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-        return list_articles;
-    }
-
     String formatTitleFieldPane(String field) {
         return field.replace("<html><center>", "").replace("</center></html>", "");
     }
@@ -745,4 +560,28 @@ public class ArticoloPane extends AContainer implements ActionListener {
             return attribute;
         }
     }
+
+    // Informazioni sull'articolo
+
+    public static Set<String> loadProductAttribute(String attribute) {
+
+        Set<String> lista = new HashSet<String>() {
+            {
+                add("NOT CATEGORIZED");
+            }
+        };
+        try {
+            Connection con = (new ConnectionManager()).getConnection();
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery(String.format("SELECT* FROM %s_PRODOTTO", attribute));
+            while (rs.next())
+                lista.add(rs.getString(attribute));
+            stmt.close();
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return lista;
+    }
+
 }
