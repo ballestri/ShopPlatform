@@ -15,6 +15,12 @@ import static shop.view.ArticoloPane.*;
 
 public class ArticleDbOperation {
     public static void deleteArticleFromDB(){
+
+        if (table.getSelectedRow() == -1) {
+            showMessageDialog(null, "Selezionare l'articolo", "Info Dialog", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         while (table.getSelectedRow() != -1) {
             try {
                 Connection con = (new ConnectionManager()).getConnection();

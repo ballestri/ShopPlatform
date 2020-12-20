@@ -474,7 +474,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
         buildFonctionality();
 
-
         table.getSelectionModel().addListSelectionListener(e -> getSelectedArticle());
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -482,7 +481,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         scrollPane.setPreferredSize(new Dimension(1150, 420));
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         scrollPane.getViewport().setBackground(table.getBackground());
-
         internPanel.add(scrollPane);
 
     }
@@ -564,7 +562,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
     // Informazioni sull'articolo
 
     public static Set<String> loadProductAttribute(String attribute) {
-
         Set<String> lista = new HashSet<String>() {
             {
                 add("NOT CATEGORIZED");

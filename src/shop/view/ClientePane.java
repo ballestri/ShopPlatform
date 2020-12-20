@@ -2,29 +2,29 @@ package shop.view;
 
 import shop.controller.article.RendererHighlighted;
 import shop.controller.article.RowFilterUtil;
+import shop.model.Fornitore;
 import shop.utils.DesktopRender;
 import shop.utils.RoundedPanel;
-import shop.view.Fornitore.FornitorePane;
+import shop.view.fornitore.FornitorePane;
+import shop.view.fornitore.FornitorePaneUpdate;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import static javax.swing.JOptionPane.showMessageDialog;
 import static shop.utils.DesktopRender.FONT_FAMILY;
+import static shop.view.fornitore.controller.FornitoreDbOperation.*;
 
 public class ClientePane extends AContainer implements ActionListener {
 
     public JButton btn_prima, btn_close;
-
 
     // pannello interno
     private JPanel internPane, clientWrapper, wrapperPane, clientPane;
@@ -38,7 +38,7 @@ public class ClientePane extends AContainer implements ActionListener {
     public static JTable table;
     JScrollPane scrollPane;
 
-    protected JButton btn_add,btn_update,btn_remove;
+    protected JButton btn_add, btn_update, btn_remove;
 
 
     // Pulsante di carica articolo
@@ -121,7 +121,7 @@ public class ClientePane extends AContainer implements ActionListener {
         Border empty = new EmptyBorder(5, 10, 5, 10);
         CompoundBorder border = new CompoundBorder(line, empty);
         wrapperPane.setBorder(border);
-        wrapperPane.setLayout( new FlowLayout());
+        wrapperPane.setLayout(new FlowLayout());
 
         clientPane.setBackground(wrapperPane.getBackground());
         clientPane.setPreferredSize(new Dimension(1150, 420));
@@ -136,14 +136,13 @@ public class ClientePane extends AContainer implements ActionListener {
         filterField.setFont(font);
         filterField.setBorder(new LineBorder(Color.BLACK));
 
-       // filterField.setSize(new Dimension(1000,50));
-        searchPane.add(lbl,c);
-        searchPane.add(filterField,c);
+        searchPane.add(lbl, c);
+        searchPane.add(filterField, c);
         wrapperPane.add(searchPane, BorderLayout.NORTH);
         wrapperPane.add(clientPane, BorderLayout.CENTER);
 
+        btn_remove.addActionListener(e -> deleteFornitoreFromDB());
     }
-
 
     void buildArticleDetails() {
         String[] header = {"ID", "Nome", "Cognome|RS", "Indirizzo", "Comune", "PIVA", "Mail", "Telefono", "Fax", "Sito web", "Note"};
@@ -151,8 +150,12 @@ public class ClientePane extends AContainer implements ActionListener {
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
-
         };
+
+        int i=0;
+        for (Fornitore fornitore : loadFornitoreFromDB()) {
+            tableModel.addRow(new String[]{String.valueOf(++i), fornitore.getNome(), fornitore.getCognome(), fornitore.getIndirizzo(), fornitore.getComune(), fornitore.getPiva(), fornitore.getMail(), fornitore.getTelefono(), fornitore.getFax(), fornitore.getWebsite(), fornitore.getNote()});
+        }
 
         table = new JTable(tableModel) {
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -172,6 +175,9 @@ public class ClientePane extends AContainer implements ActionListener {
         tableHeader.setBackground(new Color(39, 55, 70));
         tableHeader.setForeground(Color.WHITE);
 
+
+        resizeColumnWidth(table);
+
         filterField = RowFilterUtil.createRowFilter(table);
         filterField.setColumns(32);
         RendererHighlighted renderer = new RendererHighlighted(filterField);
@@ -184,7 +190,8 @@ public class ClientePane extends AContainer implements ActionListener {
         table.setRowHeight(25);
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-
+        table.setPreferredScrollableViewportSize(new Dimension(1150, 420));
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -195,6 +202,52 @@ public class ClientePane extends AContainer implements ActionListener {
         clientPane.add(scrollPane, BorderLayout.CENTER);
 
     }
+
+
+    public void resizeColumnWidth(JTable table) {
+
+
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            TableColumn tableColumn = table.getColumnModel().getColumn(column);
+            int preferredWidth = tableColumn.getMinWidth() + 120;
+            int maxWidth = tableColumn.getMaxWidth();
+
+            for (int row = 0; row < table.getRowCount(); row++) {
+                TableCellRenderer cellRenderer = table.getCellRenderer(row, column);
+                Component c = table.prepareRenderer(cellRenderer, row, column);
+                int width = c.getPreferredSize().width + table.getIntercellSpacing().width;
+                preferredWidth = Math.max(preferredWidth, width);
+
+                //  We've exceeded the maximum width, no need to check other rows
+
+                if (preferredWidth >= maxWidth) {
+                    preferredWidth = maxWidth;
+                    break;
+                }
+            }
+
+            tableColumn.setPreferredWidth(preferredWidth);
+        }
+
+
+
+/*
+        TableColumnModel columnModel = table.getColumnModel();
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            int width = 40; // Min width
+            for (int row = 0; row < table.getRowCount(); row++) {
+                TableCellRenderer renderer = table.getCellRenderer(row, column);
+                Component comp = table.prepareRenderer(renderer, row, column);
+                width = Math.max(comp.getPreferredSize().width +1 , width);
+            }
+            if(width > 300)
+                width=300;
+            columnModel.getColumn(column).setPreferredWidth(width);
+            table.getColumnModel().getColumn(column).setResizable(false);
+        }
+        */
+    }
+
 
     void formatButton(JButton btn) {
         btn.setFont(font);
@@ -208,17 +261,39 @@ public class ClientePane extends AContainer implements ActionListener {
     }
 
 
+    public Fornitore getSelectedFornitore() {
+        Fornitore fornitore = new Fornitore();
+        if (table.getSelectedRow() >= 0) {
+            int index = table.getSelectedRow();
+            fornitore.setNome(String.valueOf(table.getValueAt(index, 1)));
+            fornitore.setCognome(String.valueOf(table.getValueAt(index, 2)));
+            fornitore.setIndirizzo(String.valueOf(table.getValueAt(index, 3)));
+            fornitore.setComune(String.valueOf(table.getValueAt(index, 4)));
+            fornitore.setPiva(String.valueOf(table.getValueAt(index, 5)));
+            fornitore.setMail(String.valueOf(table.getValueAt(index, 6)));
+            fornitore.setTelefono(String.valueOf(table.getValueAt(index, 7)));
+            fornitore.setFax(String.valueOf(table.getValueAt(index, 8)));
+            fornitore.setWebsite(String.valueOf(table.getValueAt(index, 9)));
+            fornitore.setNote(String.valueOf(table.getValueAt(index, 10)));
+        }
+        return fornitore;
+    }
+
+
     @Override
     public void actionPerformed(ActionEvent e) {
-
-
         if (e.getSource() == btn_prima) {
             container.removeAll();
             container.revalidate();
             container.add(new AnagraficaPane().getPanel());
             container.repaint();
-        } else if (e.getSource() == btn_add){
+        } else if (e.getSource() == btn_add) {
             new FornitorePane();
+        } else if (e.getSource() == btn_update) {
+            if (table.getSelectedRow() == -1) {
+                showMessageDialog(null, "Selezionare il fornitore", "Info Dialog", JOptionPane.ERROR_MESSAGE);
+            } else
+                new FornitorePaneUpdate(getSelectedFornitore());
         }
 
     }
