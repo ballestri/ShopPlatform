@@ -7,6 +7,7 @@ import shop.utils.*;
 import shop.view.articolo.CategoryPane;
 import shop.view.articolo.PositionPane;
 import shop.view.articolo.UnitPane;
+import shop.view.articolo.controller.Autocomplete;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -17,6 +18,7 @@ import java.sql.*;
 import java.text.*;
 import java.util.*;
 import java.util.stream.*;
+
 import static shop.view.articolo.controller.ArticleDbOperation.*;
 import static shop.utils.DesktopRender.FONT_FAMILY;
 
@@ -47,6 +49,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
     public static DefaultTableModel tableModel;
     JTableHeader tableHeader;
     public static JTable table;
+    private static final String COMMIT_ACTION = "commit";
 
     public ArticoloPane() {
         initPanel();
@@ -77,7 +80,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         btn_list_posizione = new JButton(DesktopRender.formatButton("Lista posizioni"));
         btn_list_unita = new JButton(DesktopRender.formatButton("Lista unita'"));
 
-        build();
+        initComponents();
         buildProduct();
         buildArticleDetails();
 
@@ -86,7 +89,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         container.add(toolbar, BorderLayout.NORTH);
     }
 
-    public void build() {
+    public void initComponents() {
 
         internPanel.setPreferredSize(new Dimension(1200, 675));
         Border line = BorderFactory.createLineBorder(Color.WHITE);
@@ -131,9 +134,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
 
         wrapperPane.setLayout(new BorderLayout());
-        //informationPane.setBackground(articlePane.getBackground());
         wrapperPane.add(informationPane, BorderLayout.NORTH);
-
         wrapperPane.add(internPanel, BorderLayout.SOUTH);
         container.add(wrapperPane);
     }
@@ -153,7 +154,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jtfCodice.setFont(font);
 
         lblDescrizione = new JLabel("Descrizione");
-        //lblDescrizione.setForeground(Color.WHITE);
         lblDescrizione.setFont(font);
 
         // Testo
@@ -200,6 +200,12 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jtfFornitore.setBorder(new LineBorder(Color.BLACK));
         jtfFornitore.setBackground(JTF_COLOR);
         jtfFornitore.setFont(font);
+        jtfFornitore.setFocusTraversalKeysEnabled(false);
+        Autocomplete autoComplete = new Autocomplete(jtfFornitore, getListFornitore());
+        jtfFornitore.getDocument().addDocumentListener(autoComplete);
+        jtfFornitore.getInputMap().put(KeyStroke.getKeyStroke("TAB"), COMMIT_ACTION);
+        jtfFornitore.getActionMap().put(COMMIT_ACTION, autoComplete.new CommitAction());
+
 
         lblPrezzo = new JLabel("Prezzo");
         lblPrezzo.setFont(font);
@@ -424,8 +430,8 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
         // Gestione degli eventi
         btn_salva.addActionListener(e -> insertArticleToDB());
-        btn_aggiorna.addActionListener(e ->updateArticleToDB() );
-        btn_elimina.addActionListener(e->deleteArticleFromDB());
+        btn_aggiorna.addActionListener(e -> updateArticleToDB());
+        btn_elimina.addActionListener(e -> deleteArticleFromDB());
         btn_nuovo.addActionListener(e -> initArticlePane());
 
         actionPaneWrapper.add(actionPane, BorderLayout.EAST);
@@ -504,7 +510,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
             container.revalidate();
             container.add(new AnagraficaPane().getPanel());
             container.repaint();
-        }else if (e.getSource() == btn_list_categoria) {
+        } else if (e.getSource() == btn_list_categoria) {
             new CategoryPane(formatTitleFieldPane(e.getActionCommand()), IntStream.range(0, jcbCategoria.getItemCount()).mapToObj(i -> jcbCategoria.getItemAt(i)).collect(Collectors.toCollection(ArrayList::new)));
         } else if (e.getSource() == btn_list_unita) {
             new UnitPane(formatTitleFieldPane(e.getActionCommand()), IntStream.range(0, jcbUnita.getItemCount()).mapToObj(i -> jcbUnita.getItemAt(i)).collect(Collectors.toCollection(ArrayList::new)));
@@ -513,7 +519,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         }
     }
 
-    public void getSelectedArticle(){
+    public void getSelectedArticle() {
         if (table.getSelectedRow() >= 0) {
             Articolo articolo = new Articolo();
             articolo.setCodice(String.valueOf(table.getValueAt(table.getSelectedRow(), 0)));
@@ -541,6 +547,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         table.revalidate();
         table.repaint();
     }
+
     String formatTitleFieldPane(String field) {
         return field.replace("<html><center>", "").replace("</center></html>", "");
     }
@@ -579,6 +586,25 @@ public class ArticoloPane extends AContainer implements ActionListener {
             System.out.println(e.getMessage());
         }
         return lista;
+
+    }
+
+
+    public ArrayList<String> getListFornitore() {
+        ArrayList<String> fornitori = new ArrayList<>();
+        try {
+            Connection con = (new ConnectionManager()).getConnection();
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT COGNOME FROM FORNITORE");
+            while (rs.next()) {
+                fornitori.add(rs.getString("COGNOME"));
+            }
+            stmt.close();
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return fornitori;
     }
 
 }
