@@ -50,12 +50,12 @@ public class AnagraficaPane extends AContainer implements ActionListener {
         btn_cliente = new CreateRoundButton(DesktopRender.formatButton("Gestione", "Clienti"));
 
         // Pannello interno
-        JTable panel = new JTable();
+        JPanel panel = new JPanel();
 
         // Font dei pulsanti
-        Font font = new Font("HelveticaNeue", Font.BOLD, 32);
+        Font font = new Font("HelveticaNeue", Font.BOLD, 30);
 
-        panel.setBounds(375, 160, 825, 625);
+        panel.setBounds(195, 105, 825, 625);
         Border whiteline = BorderFactory.createLineBorder(Color.WHITE);
         panel.setBorder(whiteline);
         panel.setBackground(new Color(128, 0, 128));
@@ -79,12 +79,8 @@ public class AnagraficaPane extends AContainer implements ActionListener {
         btn_cliente.setFocusPainted(false);
         btn_cliente.addActionListener(this);
 
-
-
-
         panel.setLayout(new GridBagLayout());
         GridBagConstraints gc = new GridBagConstraints();
-
 
         // first column of the grid//
         gc.anchor = GridBagConstraints.EAST;
@@ -109,9 +105,7 @@ public class AnagraficaPane extends AContainer implements ActionListener {
 
         container.add(panel);
 
-        toolbar.setFloatable(false);
         container.setLayout(new BorderLayout());
-        container.add(toolbar, BorderLayout.NORTH);
 
     }
 

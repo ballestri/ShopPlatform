@@ -56,7 +56,7 @@ public class Pannello extends AContainer implements ActionListener {
         JTable panel = new JTable();
 
         // Font dei pulsanti
-        font = new Font("HelveticaNeue", Font.BOLD, 32);
+        font = new Font("HelveticaNeue", Font.BOLD, 30);
 
         panel.setBounds(375, 160, 825, 625);
         Border whiteline = BorderFactory.createLineBorder(Color.WHITE);
@@ -125,5 +125,4 @@ public class Pannello extends AContainer implements ActionListener {
         container.doLayout();
         container.repaint();
     }
-
 }

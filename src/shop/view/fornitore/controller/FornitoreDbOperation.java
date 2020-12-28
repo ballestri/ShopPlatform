@@ -26,6 +26,7 @@ public class FornitoreDbOperation {
                 Connection con = (new ConnectionManager()).getConnection();
                 Statement stmt = con.createStatement();
                 stmt.executeUpdate(String.format("DELETE FROM FORNITORE WHERE PIVA='%s'", table.getValueAt(table.getSelectedRow(), 5)));
+                stmt.executeUpdate(String.format("UPDATE ARTICOLO SET FORNITORE='%s' WHERE FORNITORE='%s'", "NOT CATEGORIZED", table.getValueAt(table.getSelectedRow(), 2)));
                 stmt.close();
                 con.close();
             } catch (Exception ex) {
@@ -162,5 +163,22 @@ public class FornitoreDbOperation {
             jtaNote.setText(null);
         }
 
+    }
+
+    public static ArrayList<String> getListFornitore() {
+        ArrayList<String> fornitori = new ArrayList<>();
+        try {
+            Connection con = (new ConnectionManager()).getConnection();
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT COGNOME FROM FORNITORE");
+            while (rs.next()) {
+                fornitori.add(rs.getString("COGNOME"));
+            }
+            stmt.close();
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return fornitori;
     }
 }

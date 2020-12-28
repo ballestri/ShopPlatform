@@ -2,111 +2,161 @@ package shop.view;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.IntStream;
 import javax.swing.*;
-import javax.swing.border.LineBorder;
-
-import shop.utils.DesktopRender;
+import javax.swing.plaf.basic.BasicTabbedPaneUI;
 
 public class MagazzinoPane extends AContainer implements ActionListener {
 
-	// Le funzionalita' dell'app
-	private JButton btn_anagrafica;
-	private JButton btn_gestione;
-	private JButton btn_carico;
-	private JButton btn_richieste;
+    public static final Color SELECTED_BG = new Color(128, 0, 128);
+    public static final Color UNSELECTED_BG = new Color(17, 109, 91);
 
-	private Font font;
+    private JButton btn_prima;
 
-	private JButton btn_prima;
+    public MagazzinoPane() {
+        initPanel();
+    }
 
-	public MagazzinoPane() {
+    public void initPanel() {
 
-		initPanel();
-	}
+        ToolTipManager.sharedInstance().setInitialDelay(500);
+        ToolTipManager.sharedInstance().setDismissDelay(4000);
 
-	public void initPanel() {
+        // Toolbar
+        // I pulsanti della Toolbar
+        JToolBar toolbar = new JToolBar();
+        btn_prima = new JButton();
+        btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/prima.png")));
+        toolbar.add(btn_prima);
+        btn_prima.setFocusPainted(false);
+        btn_prima.addActionListener(this);
+        btn_prima.setToolTipText("Prima");
+        toolbar.addSeparator();
 
-		ToolTipManager.sharedInstance().setInitialDelay(500);
-		ToolTipManager.sharedInstance().setDismissDelay(4000);
+        JButton btn_close = new JButton();
+        btn_close.setIcon(new ImageIcon(this.getClass().getResource("/images/esci.png")));
+        toolbar.add(btn_close);
+        btn_close.setFocusPainted(false);
+        btn_close.setToolTipText("Chiudi");
+        toolbar.addSeparator();
+        btn_close.addActionListener(evt -> System.exit(0));
 
-		// Toolbar
-		// I pulsanti della Toolbar
-		JToolBar toolbar = new JToolBar();
-		btn_prima = new JButton();
-		btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/prima.png")));
-		toolbar.add(btn_prima);
-		btn_prima.setFocusPainted(false);
-		btn_prima.addActionListener(this);
-		btn_prima.setToolTipText("Prima");
-		toolbar.addSeparator();
+        UIManager.put("TabbedPane.tabInsets", new Insets(20, 40, 17, 10));
+        UIManager.put("TabbedPane.contentBorderInsets", new Insets(0, 0, 0, 0));
+        UIManager.put("TabbedPane.tabAreaInsets", new Insets(0, 0, 0, 0));
+        UIManager.put("TabbedPane.selectedLabelShift", 0);
+        UIManager.put("TabbedPane.labelShift", 0);
 
-		JButton btn_close = new JButton();
-		btn_close.setIcon(new ImageIcon(this.getClass().getResource("/images/esci.png")));
-		toolbar.add(btn_close);
-		btn_close.setFocusPainted(false);
-		btn_close.setToolTipText("Chiudi");
-		toolbar.addSeparator();
-		btn_close.addActionListener(evt -> System.exit(0));
+        JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP) {
+            @Override
+            public void updateUI() {
+                setOpaque(true);
+                setForeground(Color.WHITE);
+                setBackground(UNSELECTED_BG);
+                setTabPlacement(LEFT);
+                setTabLayoutPolicy(SCROLL_TAB_LAYOUT);
+            }
+        };
 
-		// Pulsanti
-		btn_anagrafica = new JButton(DesktopRender.formatButton("Anagrafica"));
-		btn_gestione = new JButton(DesktopRender.formatButton("Gestione","Storico"));
-		btn_carico = new JButton(DesktopRender.formatButton("Carico"));
-		btn_richieste = new JButton(DesktopRender.formatButton("Richieste"));
+        ArrayList<String> list_actions = new ArrayList<>(
+                Arrays.asList("ANAGRAFICA", "STORICO", "CARICO", "RICHIESTE")
+        );
 
-		// Font dei pulsanti
-		font = new Font("HelveticaNeue", Font.BOLD, 24);
+        for (String action : list_actions) {
+            if (action.equals("ANAGRAFICA"))
+                tabbedPane.addTab(action, new AnagraficaPane().getPanel());
+            else
+                tabbedPane.addTab(action, new JPanel());
+        }
 
-		// Pulsante di recupero bilanci
-		btn_anagrafica.setBounds(115, 150, 240, 120);
-		btn_anagrafica.setBackground(new Color(128, 0, 128));
-		buttonFormatting(btn_anagrafica);
+        tabbedPane.setFont(new Font("HelveticaNeue", Font.BOLD, 20));
+        toolbar.setFloatable(false);
+        toolbar.setBorderPainted(true);
 
-		btn_gestione.setBounds(445, 150, 240, 120);
-		btn_gestione.setBackground(new Color(39, 55, 70));
-		buttonFormatting(btn_gestione);
+        tabbedPane.addMouseWheelListener(e -> {
+            JTabbedPane pane = (JTabbedPane) e.getSource();
+            int units = e.getWheelRotation();
+            int oldIndex = pane.getSelectedIndex();
+            int newIndex = oldIndex + units;
+            if (newIndex < 0)
+                pane.setSelectedIndex(0);
+            else if (newIndex >= pane.getTabCount())
+                pane.setSelectedIndex(pane.getTabCount() - 1);
+            else {
+                pane.setSelectedIndex(newIndex);
+            }
 
-		btn_carico.setBounds(115, 348, 240, 120);
-		btn_carico.setBackground(new Color(128, 0, 0));
-		buttonFormatting(btn_carico);
+        });
 
-		btn_richieste.setBounds(445, 348, 240, 120);
-		btn_richieste.setBackground(new Color(0, 128, 128));
-		buttonFormatting(btn_richieste);
+        tabbedPane.setUI(new CustomMainMenuTabs());
+        MouseMotionListener listener = new MouseMotionAdapter() {
+            public void mouseMoved(MouseEvent e) {
+                JTabbedPane tabbedPane = (JTabbedPane) e.getSource();
+                if (findTabPaneIndex(e.getPoint(), tabbedPane) > -1) {
+                    tabbedPane.setCursor(new Cursor((Cursor.HAND_CURSOR)));
+                } else {
+                    tabbedPane.setCursor(new Cursor((Cursor.DEFAULT_CURSOR)));
+                }
+            }
+        };
 
-		// Le varie funzionalita' dell'app
+        tabbedPane.addMouseMotionListener(listener);
+        tabbedPane.setBackground(container.getBackground());
 
-		container.add(btn_richieste);
-		container.add(btn_anagrafica);
-		container.add(btn_gestione);
-		container.add(btn_carico);
+        container.setLayout(new BorderLayout());
+        container.add(toolbar, BorderLayout.NORTH);
+        container.add(tabbedPane, BorderLayout.CENTER);
 
-		toolbar.setFloatable(false);
-		container.setLayout(new BorderLayout());
-		container.add(toolbar, BorderLayout.NORTH);
+    }
 
-	}
+    public static class CustomMainMenuTabs extends BasicTabbedPaneUI {
 
-	void buttonFormatting(JButton btn) {
-		btn.setFont(font);
-		btn.setForeground(Color.WHITE);
-		btn.setBorder(new LineBorder(Color.BLACK));
-		btn.setFocusPainted(false);
-		btn.addActionListener(this);
-	}
+        protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h,
+                                          boolean isSelected) {
+            Graphics2D g2 = (Graphics2D) g;
+            Color color;
+            if (isSelected) {
+                color = SELECTED_BG;
+            } else if (getRolloverTab() == tabIndex) {
+                color = UNSELECTED_BG;
+            } else {
+                color = UNSELECTED_BG;
+            }
+            g2.setPaint(color);
+            g2.fill(new RoundRectangle2D.Double(x, y, w, h, 30, 30));
+            g2.fill(new Rectangle2D.Double(x + 100, y, w, h));
+        }
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
+        protected void paintTabBorder(Graphics g, int tabPlacement,
+                                      int tabIndex, int x, int y, int w, int h, boolean isSelected) {
+            g.setColor(new Color(116, 142, 203));
+            g.drawRect(x, y, w, h);
 
-		container.removeAll();
-		container.revalidate();
+        }
 
-		if (e.getSource() == btn_anagrafica)
-			container.add(new AnagraficaPane().getPanel());
-		else if (e.getSource() == btn_prima)
-			container.add(new Pannello().getPanel());
+        protected void paintFocusIndicator(Graphics g, int tabPlacement, Rectangle[] rects, int tabIndex,
+                                           Rectangle iconRect, Rectangle textRect, boolean isSelected) {}
+    }
 
-		container.repaint();
+    private static int findTabPaneIndex(Point p, JTabbedPane tabbedPane) {
+        return IntStream.range(0, tabbedPane.getTabCount()).filter(i -> tabbedPane.getBoundsAt(i).contains(p.x, p.y)).findFirst().orElse(-1);
+    }
 
-	}
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        container.removeAll();
+        container.revalidate();
+
+        if (e.getSource() == btn_prima)
+            container.add(new Pannello().getPanel());
+
+        container.repaint();
+
+    }
 }

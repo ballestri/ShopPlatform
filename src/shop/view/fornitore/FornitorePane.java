@@ -61,7 +61,7 @@ public class FornitorePane extends JFrame implements ActionListener {
         actionPane = new JPanel();
         infoPane = new RoundedPanel();
 
-        build();
+        initComponents();
 
         add(wrapperPane);
         getContentPane().setBackground(new Color(116, 142, 203));
@@ -72,7 +72,7 @@ public class FornitorePane extends JFrame implements ActionListener {
     }
 
 
-    void build() {
+    void initComponents() {
         wrapperPane.setBounds(20, 90, WIDTH - 40, HEIGHT - 160);
         internPane.setPreferredSize(new Dimension(WIDTH - 80, HEIGHT - 340));
         infoPane.setPreferredSize(new Dimension(WIDTH - 80, 60));

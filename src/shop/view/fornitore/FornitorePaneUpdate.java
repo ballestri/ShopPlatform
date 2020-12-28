@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Objects;
 
 import static javax.swing.JOptionPane.showMessageDialog;
@@ -33,6 +34,8 @@ public class FornitorePaneUpdate extends JFrame implements ActionListener {
     protected JButton btn_update, btn_clear;
     protected static JTextArea jtaNote;
     private static final Color JTF_COLOR = new Color(46, 134, 193);
+
+    private static String ragioneSociale;
 
     public FornitorePaneUpdate(Fornitore fornitore) {
 
@@ -94,6 +97,7 @@ public class FornitorePaneUpdate extends JFrame implements ActionListener {
         jtfFax.setText(fornitore.getFax());
         jtfSito.setText(fornitore.getWebsite());
         jtaNote.setText(fornitore.getNote());
+        ragioneSociale=fornitore.getCognome();
     }
 
     void build() {
@@ -440,6 +444,8 @@ public class FornitorePaneUpdate extends JFrame implements ActionListener {
                 }
                 try {
                     Connection con = (new ConnectionManager()).getConnection();
+
+
                     PreparedStatement ps = con.prepareStatement("UPDATE FORNITORE SET NOME=?,COGNOME=?,INDIRIZZO=?,COMUNE=?,MAIL=?,TELEFONO=?,FAX=?,WEBSITE=?,NOTE=? WHERE PIVA= ?");
 
                     ps.setString(1, fornitore.getNome());
@@ -465,6 +471,12 @@ public class FornitorePaneUpdate extends JFrame implements ActionListener {
                     tableModel.setValueAt(fornitore.getFax(), index, 8);
                     tableModel.setValueAt(fornitore.getWebsite(), index, 9);
                     tableModel.setValueAt(fornitore.getNote(), index, 10);
+
+
+                    Statement stmt = con.createStatement();
+                    stmt.executeUpdate(String.format("UPDATE ARTICOLO SET FORNITORE='%s' WHERE FORNITORE='%s'",fornitore.getCognome(),ragioneSociale));
+                    stmt.close();
+
                     con.close();
                 } catch (Exception e) {
                     System.out.println(e.getMessage());

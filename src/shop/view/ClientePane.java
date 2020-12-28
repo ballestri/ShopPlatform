@@ -27,18 +27,17 @@ public class ClientePane extends AContainer implements ActionListener {
     public JButton btn_prima, btn_close;
 
     // pannello interno
-    private JPanel internPane, clientWrapper, wrapperPane, clientPane;
+    private JPanel internPane, wrapperPane, clientPane;
     private RoundedPanel searchPane;
     protected JTextField filterField;
     private static final Color JTF_COLOR = new Color(46, 134, 193);
-
 
     public static DefaultTableModel tableModel;
     JTableHeader tableHeader;
     public static JTable table;
     JScrollPane scrollPane;
 
-    protected JButton btn_add, btn_update, btn_remove;
+    protected JButton  btn_add, btn_update, btn_remove;
 
 
     // Pulsante di carica articolo
@@ -50,14 +49,16 @@ public class ClientePane extends AContainer implements ActionListener {
 
     public void initPanel() {
 
+        font = new Font(FONT_FAMILY, Font.BOLD, 16);
         ToolTipManager.sharedInstance().setInitialDelay(500);
         ToolTipManager.sharedInstance().setDismissDelay(4000);
 
         // I pulsanti della Toolbar
         JToolBar toolbar = new JToolBar();
+        toolbar.setLayout(new FlowLayout(FlowLayout.RIGHT,0,0));
 
         btn_prima = new JButton();
-        btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/prima.png")));
+        btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/back.png")));
         toolbar.add(btn_prima);
         btn_prima.setFocusPainted(false);
         btn_prima.addActionListener(this);
@@ -65,19 +66,8 @@ public class ClientePane extends AContainer implements ActionListener {
         toolbar.addSeparator();
         btn_prima.addActionListener(this);
 
-        btn_close = new JButton();
-        btn_close.setIcon(new ImageIcon(this.getClass().getResource("/images/esci.png")));
-        toolbar.add(btn_close);
-        btn_close.setFocusPainted(false);
-        btn_close.setToolTipText("Chiudi");
-        toolbar.addSeparator();
-        btn_close.addActionListener(evt -> System.exit(0));
-        // Il Font dei pulsanti
-        font = new Font(FONT_FAMILY, Font.BOLD, 16);
-
         // I pulsanti delle funzionalita'
         internPane = new JPanel();
-        clientWrapper = new JPanel();
         wrapperPane = new JPanel();
         clientPane = new JPanel();
         searchPane = new RoundedPanel();
@@ -90,31 +80,15 @@ public class ClientePane extends AContainer implements ActionListener {
 
 
     public void build() {
-
-        internPane.setBounds(20, 110, 1400, 675);
-        clientWrapper.setPreferredSize(new Dimension(200, 675));
+        internPane.setBounds(90, 110, 1200, 675);
         wrapperPane.setPreferredSize(new Dimension(1200, 675));
         internPane.setBackground(container.getBackground());
-        clientWrapper.setBackground(container.getBackground());
         internPane.setLayout(new BorderLayout());
-        internPane.add(clientWrapper, BorderLayout.WEST);
         internPane.add(wrapperPane, BorderLayout.CENTER);
         container.add(internPane);
     }
 
     private void buildClientArea() {
-
-        clientWrapper.setLayout(new FlowLayout());
-        btn_add = new JButton(DesktopRender.formatButton("+ New fornitore"));
-        btn_update = new JButton(DesktopRender.formatButton("Update fornitore"));
-        btn_remove = new JButton(DesktopRender.formatButton("Remove fornitore"));
-
-        formatButton(btn_add);
-        formatButton(btn_update);
-        formatButton(btn_remove);
-        clientWrapper.add(btn_add);
-        clientWrapper.add(btn_update);
-        clientWrapper.add(btn_remove);
 
         wrapperPane.setBackground(new Color(39, 55, 70));
         Border line = BorderFactory.createLineBorder(Color.WHITE);
@@ -124,7 +98,7 @@ public class ClientePane extends AContainer implements ActionListener {
         wrapperPane.setLayout(new FlowLayout());
 
         clientPane.setBackground(wrapperPane.getBackground());
-        clientPane.setPreferredSize(new Dimension(1150, 420));
+        clientPane.setPreferredSize(new Dimension(1150, 450));
         buildArticleDetails();
         searchPane.setPreferredSize(new Dimension(1150, 80));
         searchPane.setLayout(new GridBagLayout());
@@ -136,8 +110,23 @@ public class ClientePane extends AContainer implements ActionListener {
         filterField.setFont(font);
         filterField.setBorder(new LineBorder(Color.BLACK));
 
+
+        btn_add = new JButton(DesktopRender.formatButton("+ New"));
+        btn_update = new JButton(DesktopRender.formatButton("Update"));
+        btn_remove = new JButton(DesktopRender.formatButton("Remove"));
+
+        formatButton(btn_add);
+        formatButton(btn_update);
+        formatButton(btn_remove);
+
+
+
         searchPane.add(lbl, c);
         searchPane.add(filterField, c);
+        searchPane.add(btn_add, c);
+        searchPane.add(btn_update, c);
+        searchPane.add(btn_remove, c);
+
         wrapperPane.add(searchPane, BorderLayout.NORTH);
         wrapperPane.add(clientPane, BorderLayout.CENTER);
 
@@ -175,11 +164,11 @@ public class ClientePane extends AContainer implements ActionListener {
         tableHeader.setBackground(new Color(39, 55, 70));
         tableHeader.setForeground(Color.WHITE);
 
-
         resizeColumnWidth(table);
 
         filterField = RowFilterUtil.createRowFilter(table);
-        filterField.setColumns(32);
+        filterField.setColumns(20);
+
         RendererHighlighted renderer = new RendererHighlighted(filterField);
         table.setDefaultRenderer(Object.class, renderer);
         renderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -229,6 +218,10 @@ public class ClientePane extends AContainer implements ActionListener {
             tableColumn.setPreferredWidth(preferredWidth);
         }
 
+        TableColumnModel columnModel = table.getColumnModel();
+        columnModel.getColumn(0).setPreferredWidth(60);
+        columnModel.getColumn(0).setResizable(false);
+
 
 
 /*
@@ -252,12 +245,12 @@ public class ClientePane extends AContainer implements ActionListener {
     void formatButton(JButton btn) {
         btn.setFont(font);
         btn.setForeground(Color.WHITE);
-        btn.setBorder(new LineBorder(Color.WHITE));
+        btn.setBorder(new LineBorder(Color.BLACK));
         btn.setBackground(new Color(0, 128, 128));
         btn.setFocusPainted(false);
         btn.addActionListener(this);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(180, 50));
+        btn.setPreferredSize(new Dimension(180, 40));
     }
 
 
@@ -297,5 +290,4 @@ public class ClientePane extends AContainer implements ActionListener {
         }
 
     }
-
 }

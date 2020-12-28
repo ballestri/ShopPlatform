@@ -21,6 +21,7 @@ import java.util.stream.*;
 
 import static shop.view.articolo.controller.ArticleDbOperation.*;
 import static shop.utils.DesktopRender.FONT_FAMILY;
+import static shop.view.fornitore.controller.FornitoreDbOperation.getListFornitore;
 
 
 public class ArticoloPane extends AContainer implements ActionListener {
@@ -63,6 +64,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         // Toolbar
         // I pulsanti della Toolbar
         toolbar = new JToolBar();
+        toolbar.setLayout(new FlowLayout(FlowLayout.RIGHT,0,0));
 
         btn_prima = new JButton();
         btn_close = new JButton();
@@ -103,25 +105,18 @@ public class ArticoloPane extends AContainer implements ActionListener {
         // pannello delle azioni
         actionPaneWrapper = new RoundedPanel();
         actionPaneWrapper.setPreferredSize(new Dimension(1150, 70));
-        wrapperPane.setBounds(180, 110, 1200, 750);
+        wrapperPane.setBounds(90, 90, 1200, 750);
         wrapperPane.setBackground(container.getBackground());
 
         // I pulsanti della JToolbar
         // Prima
-        btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/prima.png")));
+        btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/back.png")));
         toolbar.add(btn_prima);
         btn_prima.setFocusPainted(false);
         btn_prima.addActionListener(this);
         btn_prima.setToolTipText("Prima");
         toolbar.addSeparator();
 
-        // Close
-        btn_close.setIcon(new ImageIcon(this.getClass().getResource("/images/esci.png")));
-        toolbar.add(btn_close);
-        btn_close.setFocusPainted(false);
-        btn_close.setToolTipText("Chiudi");
-        toolbar.addSeparator();
-        btn_close.addActionListener(evt -> System.exit(0));
 
         informationPane.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 15));
         formatButton(btn_list_categoria);
@@ -590,21 +585,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
     }
 
 
-    public ArrayList<String> getListFornitore() {
-        ArrayList<String> fornitori = new ArrayList<>();
-        try {
-            Connection con = (new ConnectionManager()).getConnection();
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT COGNOME FROM FORNITORE");
-            while (rs.next()) {
-                fornitori.add(rs.getString("COGNOME"));
-            }
-            stmt.close();
-            con.close();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-        return fornitori;
-    }
+
 
 }
