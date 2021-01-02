@@ -44,7 +44,7 @@ public class ArticleDbOperation {
         articolo.setCategoria(String.valueOf(jcbCategoria.getSelectedItem()));
         articolo.setPosizione(String.valueOf(jcbPosizione.getSelectedItem()));
         articolo.setUnita(String.valueOf(jcbUnita.getSelectedItem()));
-        articolo.setFornitore(jtfFornitore.getText());
+        articolo.setFornitore(String.valueOf(jcbFornitore.getSelectedItem()));
         articolo.setPrezzo(Double.valueOf(jtfCurrency.getText().replace("€", "").replace(",", ".")));
         articolo.setScorta(Integer.valueOf(jspScorta.getValue().toString()));
         articolo.setProvenienza(jtfProvenienza.getText());
@@ -86,7 +86,7 @@ public class ArticleDbOperation {
         articolo.setCategoria(String.valueOf(jcbCategoria.getSelectedItem()));
         articolo.setPosizione(String.valueOf(jcbPosizione.getSelectedItem()));
         articolo.setUnita(String.valueOf(jcbUnita.getSelectedItem()));
-        articolo.setFornitore(jtfFornitore.getText());
+        articolo.setFornitore(String.valueOf(jcbFornitore.getSelectedItem()));
         articolo.setPrezzo(Double.valueOf(jtfCurrency.getText().replace("€", "").replace(",", ".")));
         articolo.setScorta(Integer.valueOf(jspScorta.getValue().toString()));
         articolo.setProvenienza(jtfProvenienza.getText());
@@ -156,7 +156,7 @@ public class ArticleDbOperation {
         jcbCategoria.setSelectedIndex(0);
         jcbPosizione.setSelectedIndex(0);
         jcbUnita.setSelectedIndex(0);
-        jtfFornitore.setText(null);
+        jcbFornitore.setSelectedIndex(0);
         jtfCurrency.setValue(0);
         jspScorta.setValue(0);
         jtfProvenienza.setText(null);

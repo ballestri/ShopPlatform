@@ -11,10 +11,9 @@ import shop.utils.DesktopRender;
 public class AnagraficaPane extends AContainer implements ActionListener {
 
     // Le funzionalita dell'app
+    private JPanel panel;
     private JButton btn_articolo;
     private JButton btn_cliente;
-
-    private JButton btn_prima;
 
     public AnagraficaPane() {
 
@@ -22,35 +21,12 @@ public class AnagraficaPane extends AContainer implements ActionListener {
     }
 
     public void initPanel() {
-
-        ToolTipManager.sharedInstance().setInitialDelay(500);
-        ToolTipManager.sharedInstance().setDismissDelay(4000);
-
-        // Toolbar
-        // I pulsanti della Toolbar
-        JToolBar toolbar = new JToolBar();
-        btn_prima = new JButton();
-        btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/prima.png")));
-        toolbar.add(btn_prima);
-        btn_prima.setFocusPainted(false);
-        btn_prima.addActionListener(this);
-        btn_prima.setToolTipText("Prima");
-        toolbar.addSeparator();
-
-        JButton btn_close = new JButton();
-        btn_close.setIcon(new ImageIcon(this.getClass().getResource("/images/esci.png")));
-        toolbar.add(btn_close);
-        btn_close.setFocusPainted(false);
-        btn_close.setToolTipText("Chiudi");
-        toolbar.addSeparator();
-        btn_close.addActionListener(evt -> System.exit(0));
-
         // Pulsanti
         btn_articolo = new CreateRoundButton(DesktopRender.formatButton("Gestione", "Articoli"));
         btn_cliente = new CreateRoundButton(DesktopRender.formatButton("Gestione", "Clienti"));
 
         // Pannello interno
-        JPanel panel = new JPanel();
+        panel = new JPanel();
 
         // Font dei pulsanti
         Font font = new Font("HelveticaNeue", Font.BOLD, 30);
@@ -106,18 +82,13 @@ public class AnagraficaPane extends AContainer implements ActionListener {
         container.add(panel);
 
         container.setLayout(new BorderLayout());
-
     }
-
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
         container.removeAll();
         container.revalidate();
-        if (e.getSource() == btn_prima)
-            container.add(new MagazzinoPane().getPanel());
-        else if (e.getSource() == btn_articolo)
+        if (e.getSource() == btn_articolo)
             container.add(new ArticoloPane().getPanel());
         else if (e.getSource() == btn_cliente)
             container.add(new ClientePane().getPanel());

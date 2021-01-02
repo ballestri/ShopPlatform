@@ -63,12 +63,14 @@ public class MagazzinoPane extends AContainer implements ActionListener {
         };
 
         ArrayList<String> list_actions = new ArrayList<>(
-                Arrays.asList("ANAGRAFICA", "STORICO", "CARICO", "RICHIESTE")
+                Arrays.asList("ANAGRAFICA", "STORICO", "RILEVAZIONI", "RICHIESTE")
         );
 
         for (String action : list_actions) {
             if (action.equals("ANAGRAFICA"))
                 tabbedPane.addTab(action, new AnagraficaPane().getPanel());
+            else if (action.equals("RILEVAZIONI"))
+                tabbedPane.addTab(action, new RilevazionePane().getPanel());
             else
                 tabbedPane.addTab(action, new JPanel());
         }

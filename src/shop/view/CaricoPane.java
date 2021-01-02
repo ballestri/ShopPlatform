@@ -2,11 +2,11 @@ package shop.view;
 
 import shop.controller.article.RendererHighlighted;
 import shop.controller.article.RowFilterUtil;
+import shop.model.Carico;
 import shop.model.Fornitore;
 import shop.utils.DesktopRender;
 import shop.utils.RoundedPanel;
-import shop.view.fornitore.FornitorePane;
-import shop.view.fornitore.FornitorePaneUpdate;
+import shop.view.carico.InfoCaricoPane;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -17,12 +17,14 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
 
-import static javax.swing.JOptionPane.showMessageDialog;
 import static shop.utils.DesktopRender.FONT_FAMILY;
+import static shop.view.carico.controller.CaricoDbOperation.deleteCaricoFromDB;
+import static shop.view.carico.controller.CaricoDbOperation.loadCaricoFromDB;
 import static shop.view.fornitore.controller.FornitoreDbOperation.*;
 
-public class ClientePane extends AContainer implements ActionListener {
+public class CaricoPane extends AContainer implements ActionListener {
 
     public JButton btn_prima;
 
@@ -39,11 +41,10 @@ public class ClientePane extends AContainer implements ActionListener {
 
     protected JButton  btn_add, btn_update, btn_remove;
 
-
     // Pulsante di carica articolo
     private Font font;
 
-    public ClientePane() {
+    public CaricoPane() {
         initPanel();
     }
 
@@ -119,8 +120,6 @@ public class ClientePane extends AContainer implements ActionListener {
         formatButton(btn_update);
         formatButton(btn_remove);
 
-
-
         searchPane.add(lbl, c);
         searchPane.add(filterField, c);
         searchPane.add(btn_add, c);
@@ -130,11 +129,11 @@ public class ClientePane extends AContainer implements ActionListener {
         wrapperPane.add(searchPane, BorderLayout.NORTH);
         wrapperPane.add(clientPane, BorderLayout.CENTER);
 
-        btn_remove.addActionListener(e -> deleteFornitoreFromDB());
+        btn_remove.addActionListener(e -> deleteCaricoFromDB());
     }
 
     void buildArticleDetails() {
-        String[] header = {"ID", "Nome", "Cognome|RS", "Indirizzo", "Comune", "PIVA", "Mail", "Telefono", "Fax", "Sito web", "Note"};
+        String[] header = {"ID", "Codice Prodotto","Descrizione", "Data Carico", "Quantita'", "Fornitore", "Note"};
         tableModel = new DefaultTableModel(new Object[][]{}, header) {
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -142,8 +141,8 @@ public class ClientePane extends AContainer implements ActionListener {
         };
 
         int i=0;
-        for (Fornitore fornitore : loadFornitoreFromDB()) {
-            tableModel.addRow(new String[]{String.valueOf(++i), fornitore.getNome(), fornitore.getCognome(), fornitore.getIndirizzo(), fornitore.getComune(), fornitore.getPiva(), fornitore.getMail(), fornitore.getTelefono(), fornitore.getFax(), fornitore.getWebsite(), fornitore.getNote()});
+        for (Carico carico : loadCaricoFromDB()) {
+            tableModel.addRow(new String[]{String.valueOf(++i),carico.getCodice(), carico.getDescrizione(), (new SimpleDateFormat("dd/MM/yyyy")).format(carico.getDatacarico()),String.valueOf(carico.getQuantita()), carico.getFornitore(), carico.getNote()});
         }
 
         table = new JTable(tableModel) {
@@ -179,6 +178,8 @@ public class ClientePane extends AContainer implements ActionListener {
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         table.setPreferredScrollableViewportSize(new Dimension(1150, 420));
+        table.setPreferredSize(new Dimension(1130, 420));
+
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -252,6 +253,7 @@ public class ClientePane extends AContainer implements ActionListener {
     }
 
 
+    /*
     public Fornitore getSelectedFornitore() {
         Fornitore fornitore = new Fornitore();
         if (table.getSelectedRow() >= 0) {
@@ -270,24 +272,23 @@ public class ClientePane extends AContainer implements ActionListener {
         return fornitore;
     }
 
+     */
+
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btn_prima) {
             container.removeAll();
             container.revalidate();
-            container.add(new AnagraficaPane().getPanel());
+            container.add(new RilevazionePane().getPanel());
             container.repaint();
         } else if (e.getSource() == btn_add) {
-            new FornitorePane();
+            new InfoCaricoPane();
         } else if (e.getSource() == btn_update) {
             if (table.getSelectedRow() == -1) {
-                showMessageDialog(null, "Selezionare il fornitore", "Info Dialog", JOptionPane.ERROR_MESSAGE);
-            } else
-                new FornitorePaneUpdate(getSelectedFornitore());
+                //showMessageDialog(null, "Selezionare il fornitore", "Info Dialog", JOptionPane.ERROR_MESSAGE);
+            } /*else
+                new FornitorePaneUpdate(getSelectedFornitore()); */
         }
     }
-
-
-
 }

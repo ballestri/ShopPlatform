@@ -1,5 +1,7 @@
 package shop.view;
 
+import shop.controller.ComboBoxFilterDecorator;
+import shop.controller.CustomComboRenderer;
 import shop.controller.article.*;
 import shop.db.ConnectionManager;
 import shop.model.*;
@@ -27,7 +29,7 @@ import static shop.view.fornitore.controller.FornitoreDbOperation.getListFornito
 public class ArticoloPane extends AContainer implements ActionListener {
 
     private static final Color JTF_COLOR = new Color(46, 134, 193);
-    public static JComboBox<String> jcbCategoria, jcbUnita, jcbPosizione;
+    public static JComboBox<String> jcbCategoria, jcbUnita, jcbPosizione,jcbFornitore;
     protected Font font;
     // la JToolbar
     protected JToolBar toolbar;
@@ -35,7 +37,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
     protected JButton btn_close;
     // Informazioni sull'articolo
     protected JLabel lblCodice, lblDescrizione, lblCategoria, lblPosizione, lblUnita, lblFornitore, lblPrezzo, lblScorta, lblProvenienza;
-    public static JTextField jtfCodice, jtfDescrizione, jtfFornitore, jtfProvenienza;
+    public static JTextField jtfCodice, jtfDescrizione, jtfProvenienza;
 
     protected JTextField filterField;
     public static JFormattedTextField jtfCurrency;
@@ -127,7 +129,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         informationPane.add(btn_list_unita);
         informationPane.add(btn_list_categoria);
 
-
         wrapperPane.setLayout(new BorderLayout());
         wrapperPane.add(informationPane, BorderLayout.NORTH);
         wrapperPane.add(internPanel, BorderLayout.SOUTH);
@@ -189,7 +190,16 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
         lblFornitore = new JLabel("Fornitore");
         lblFornitore.setFont(font);
-        // Testo
+
+        jcbFornitore = new JComboBox(getListFornitore().toArray());
+        ComboBoxFilterDecorator<String> decorate = ComboBoxFilterDecorator.decorate(jcbFornitore, ArticoloPane::fornitoreFilter);
+        jcbFornitore.setRenderer(new CustomComboRenderer(decorate.getFilterLabel()));
+        jcbFornitore.setBorder(new LineBorder(Color.BLACK));
+        jcbFornitore.setRenderer(new ComboRenderer());
+        jcbFornitore.setFont(font);
+        jcbFornitore.addActionListener(this);
+
+        /*
         jtfFornitore = new JTextField(16);
         jtfFornitore.setCaretColor(new Color(255, 255, 255));
         jtfFornitore.setBorder(new LineBorder(Color.BLACK));
@@ -200,6 +210,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         jtfFornitore.getDocument().addDocumentListener(autoComplete);
         jtfFornitore.getInputMap().put(KeyStroke.getKeyStroke("TAB"), COMMIT_ACTION);
         jtfFornitore.getActionMap().put(COMMIT_ACTION, autoComplete.new CommitAction());
+         */
 
 
         lblPrezzo = new JLabel("Prezzo");
@@ -374,7 +385,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
         gc.anchor = GridBagConstraints.LINE_START;
         gc.insets = new Insets(5, 10, 5, 10);
-        articlePane.add(jtfFornitore, gc);
+        articlePane.add(jcbFornitore, gc);
 
         gc.gridx = 5;
         gc.gridy = 2;
@@ -534,7 +545,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
             jcbCategoria.setSelectedItem(articolo.getCategoria());
             jcbPosizione.setSelectedItem(articolo.getPosizione());
             jcbUnita.setSelectedItem(articolo.getUnita());
-            jtfFornitore.setText(articolo.getFornitore());
+            jcbFornitore.setSelectedItem(articolo.getFornitore());
             jtfCurrency.setText("€ ".concat(String.valueOf(articolo.getPrezzo())).replace(".", ","));
             jspScorta.setValue(articolo.getScorta());
             jtfProvenienza.setText(articolo.getProvenienza());
@@ -584,7 +595,11 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
     }
 
-
-
+    private static boolean fornitoreFilter(String fornitore, String textToFilter) {
+        if (textToFilter.isEmpty()) {
+            return true;
+        }
+        return CustomComboRenderer.getProcessDisplayText(fornitore).toLowerCase().contains(textToFilter.toLowerCase());
+    }
 
 }
