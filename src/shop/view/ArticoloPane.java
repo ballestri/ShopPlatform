@@ -9,7 +9,6 @@ import shop.utils.*;
 import shop.view.articolo.CategoryPane;
 import shop.view.articolo.PositionPane;
 import shop.view.articolo.UnitPane;
-import shop.view.articolo.controller.Autocomplete;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -52,7 +51,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
     public static DefaultTableModel tableModel;
     JTableHeader tableHeader;
     public static JTable table;
-    private static final String COMMIT_ACTION = "commit";
 
     public ArticoloPane() {
         initPanel();
@@ -60,20 +58,46 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
     public void initPanel() {
 
+        font = new Font(FONT_FAMILY, Font.BOLD, 16);
         ToolTipManager.sharedInstance().setInitialDelay(500);
         ToolTipManager.sharedInstance().setDismissDelay(4000);
 
-        // Toolbar
         // I pulsanti della Toolbar
-        toolbar = new JToolBar();
-        toolbar.setLayout(new FlowLayout(FlowLayout.RIGHT,0,0));
+        RoundedPanel toolbar = new RoundedPanel();
+        toolbar.setLayout(new GridBagLayout());
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.anchor = GridBagConstraints.EAST;
+        gc.weightx = 0.5;
+        gc.weighty = 0.5;
 
+        gc.gridx = 0;
+        gc.gridy = 0;
+
+        gc.anchor = GridBagConstraints.LINE_END;
+        gc.insets = new Insets(8, 150, 10, 10);
+
+        JLabel lblFormName = new JLabel("Prodotto");
+        lblFormName.setForeground(Color.WHITE);
+        lblFormName.setFont( new Font("HelveticaNeue", Font.BOLD, 28));
+        toolbar.setBackground(new Color(128, 0, 128));
+        lblFormName.setPreferredSize(new Dimension(360, 40));
+        toolbar.add(lblFormName,gc);
+
+        gc.anchor = GridBagConstraints.EAST;
+        gc.gridx = 1;
+        gc.gridy = 0;
+
+        gc.anchor = GridBagConstraints.LINE_END;
+        gc.insets = new Insets(0, 10, 0, 0);
         btn_prima = new JButton();
+        btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/back.png")));
+        toolbar.add(btn_prima,gc);
+        btn_prima.setFocusPainted(false);
+        btn_prima.addActionListener(this);
+        btn_prima.setToolTipText("Prima");
+        btn_prima.addActionListener(this);
+
         btn_close = new JButton();
-
-        // Il Font dei pulsanti
-        font = new Font(FONT_FAMILY, Font.BOLD, 16);
-
         // I pulsanti delle funzionalita'
         wrapperPane = new JPanel();
         informationPane = new RoundedPanel();
@@ -88,7 +112,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         buildProduct();
         buildArticleDetails();
 
-        toolbar.setFloatable(false);
         container.setLayout(new BorderLayout());
         container.add(toolbar, BorderLayout.NORTH);
     }
@@ -109,16 +132,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
         actionPaneWrapper.setPreferredSize(new Dimension(1150, 70));
         wrapperPane.setBounds(90, 90, 1200, 750);
         wrapperPane.setBackground(container.getBackground());
-
-        // I pulsanti della JToolbar
-        // Prima
-        btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/back.png")));
-        toolbar.add(btn_prima);
-        btn_prima.setFocusPainted(false);
-        btn_prima.addActionListener(this);
-        btn_prima.setToolTipText("Prima");
-        toolbar.addSeparator();
-
 
         informationPane.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 15));
         formatButton(btn_list_categoria);
@@ -191,27 +204,13 @@ public class ArticoloPane extends AContainer implements ActionListener {
         lblFornitore = new JLabel("Fornitore");
         lblFornitore.setFont(font);
 
-        jcbFornitore = new JComboBox(getListFornitore().toArray());
+        jcbFornitore = new JComboBox<>(getListFornitore().toArray(new String[0]));
         ComboBoxFilterDecorator<String> decorate = ComboBoxFilterDecorator.decorate(jcbFornitore, ArticoloPane::fornitoreFilter);
         jcbFornitore.setRenderer(new CustomComboRenderer(decorate.getFilterLabel()));
         jcbFornitore.setBorder(new LineBorder(Color.BLACK));
         jcbFornitore.setRenderer(new ComboRenderer());
         jcbFornitore.setFont(font);
         jcbFornitore.addActionListener(this);
-
-        /*
-        jtfFornitore = new JTextField(16);
-        jtfFornitore.setCaretColor(new Color(255, 255, 255));
-        jtfFornitore.setBorder(new LineBorder(Color.BLACK));
-        jtfFornitore.setBackground(JTF_COLOR);
-        jtfFornitore.setFont(font);
-        jtfFornitore.setFocusTraversalKeysEnabled(false);
-        Autocomplete autoComplete = new Autocomplete(jtfFornitore, getListFornitore());
-        jtfFornitore.getDocument().addDocumentListener(autoComplete);
-        jtfFornitore.getInputMap().put(KeyStroke.getKeyStroke("TAB"), COMMIT_ACTION);
-        jtfFornitore.getActionMap().put(COMMIT_ACTION, autoComplete.new CommitAction());
-         */
-
 
         lblPrezzo = new JLabel("Prezzo");
         lblPrezzo.setFont(font);
@@ -483,18 +482,24 @@ public class ArticoloPane extends AContainer implements ActionListener {
         table.setRowHeight(25);
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        table.setPreferredScrollableViewportSize(new Dimension(1150, 420));
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        DesktopRender.resizeColumnWidth(table);
 
         buildFonctionality();
-
         table.getSelectionModel().addListSelectionListener(e -> getSelectedArticle());
+
+        table.getColumnModel().getColumn(0).setMinWidth(80);
+        table.getColumnModel().getColumn(6).setMinWidth(80);
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setPreferredSize(new Dimension(1150, 420));
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         scrollPane.getViewport().setBackground(table.getBackground());
-        internPanel.add(scrollPane);
 
+        scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+        internPanel.add(scrollPane);
     }
 
     void formatButton(JButton btn) {

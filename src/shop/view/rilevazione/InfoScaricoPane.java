@@ -1,7 +1,12 @@
-package shop.view.fornitore;
+package shop.view.rilevazione;
 
+import com.toedter.calendar.JDateChooser;
+import com.toedter.calendar.JTextFieldDateEditor;
+import shop.controller.ComboBoxFilterDecorator;
+import shop.controller.CustomComboRenderer;
 import shop.utils.DesktopRender;
 import shop.utils.RoundedPanel;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -10,34 +15,39 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Objects;
 
-import static shop.view.ClientePane.table;
-import static shop.view.fornitore.controller.FornitoreDbOperation.insertFornitoreToDB;
+import static shop.view.rilevazione.controller.ScaricoDbOperation.*;
 
-public class FornitorePane extends JFrame implements ActionListener {
+public class InfoScaricoPane extends JFrame implements ActionListener {
 
     private static final int WIDTH = 640;
-    private static final int HEIGHT = 840;
+    private static final int HEIGHT = 720;
     Font font;
 
     JPanel wrapperPane, actionPane;
     RoundedPanel infoPane, internPane;
-    protected JLabel lblNome, lblCognome, lblIndirizzo, lblComune, lblPiva, lblMail, lblTelefono, lblFax, lblSito, lblNote;
-    public static JTextField jtfNome, jtfCognome, jtfIndirizzo, jtfComune, jtfPiva, jtfMail, jtfTelefono, jtfFax, jtfSito;
+    protected JLabel lblCodice, lblDescrizione, lblData, lblQuantita, lblFornitore, lblNote;
+    public static JTextField jtfDescrizione, jtfFornitore;
+    public static JSpinner jspQuantita;
+    public static JDateChooser jdcData;
+    public static JComboBox<String> jcbCodice;
     protected JButton btn_save, btn_clear;
     public static JTextArea jtaNote;
     private static final Color JTF_COLOR = new Color(46, 134, 193);
 
-    public FornitorePane() {
+    public InfoScaricoPane() {
 
-        setTitle("Anagrafica Fornitori");
+        setTitle("Informazioni Scarico");
         setDefaultCloseOperation(HIDE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
         Dimension size = new Dimension(new Dimension(WIDTH, HEIGHT));
-        setSize(size);
         setPreferredSize(size);
+        setSize(size);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Dimension frameSize = getSize();
         setLocation(new Point((screenSize.width - frameSize.width) / 2, (screenSize.height - frameSize.height) / 2));
@@ -73,8 +83,8 @@ public class FornitorePane extends JFrame implements ActionListener {
 
     void initComponents() {
         wrapperPane.setBounds(20, 90, WIDTH - 40, HEIGHT - 160);
-        internPane.setPreferredSize(new Dimension(WIDTH - 80, HEIGHT - 340));
-        infoPane.setPreferredSize(new Dimension(WIDTH - 80, 60));
+        internPane.setPreferredSize(new Dimension(WIDTH - 200, HEIGHT - 380));
+        infoPane.setPreferredSize(new Dimension(WIDTH - 200, 60));
 
         wrapperPane.setBackground(new Color(39, 55, 70));
         Border line = BorderFactory.createLineBorder(Color.WHITE);
@@ -84,7 +94,7 @@ public class FornitorePane extends JFrame implements ActionListener {
 
         buildFornitore();
 
-        wrapperPane.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 15));
+        wrapperPane.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 20));
         wrapperPane.add(infoPane);
         wrapperPane.add(internPane);
         wrapperPane.add(actionPane);
@@ -92,97 +102,72 @@ public class FornitorePane extends JFrame implements ActionListener {
 
     void buildFornitore() {
         infoPane.setLayout(new GridBagLayout());
-        JLabel lblFormName = new JLabel("Anagrafica fornitori");
+        JLabel lblFormName = new JLabel("Operazioni di scarico");
         lblFormName.setFont(new Font("HelveticaNeue", Font.BOLD, 18));
         infoPane.add(lblFormName);
 
         // pannello interno
-        lblNome = new JLabel("Nome");
-        lblNome.setFont(font);
+        lblCodice = new JLabel("Codice prodotto");
+        lblCodice.setFont(font);
 
-        jtfNome = new JTextField(18);
-        jtfNome.setCaretColor(Color.BLACK);
-        jtfNome.setBackground(JTF_COLOR);
-        jtfNome.setBorder(new LineBorder(Color.BLACK));
-        jtfNome.setFont(font);
+        ArrayList<String> items = getListCodici();
+        items.add(0, null);
+        jcbCodice = new JComboBox<>(items.toArray(new String[0]));
+        ComboBoxFilterDecorator<String> decorate = ComboBoxFilterDecorator.decorate(jcbCodice, InfoScaricoPane::codiceFilter);
+        jcbCodice.setRenderer(new CustomComboRenderer(decorate.getFilterLabel()));
+        jcbCodice.setBorder(new LineBorder(Color.BLACK));
+        jcbCodice.setFont(font);
+        jcbCodice.addActionListener(this);
 
-        lblCognome = new JLabel("Cognome | Ragione soc");
-        lblCognome.setFont(font);
+        lblDescrizione = new JLabel("Descrizione");
+        lblDescrizione.setFont(font);
 
-        jtfCognome = new JTextField(18);
-        jtfCognome.setCaretColor(Color.BLACK);
-        jtfCognome.setBackground(JTF_COLOR);
-        jtfCognome.setBorder(new LineBorder(Color.BLACK));
-        jtfCognome.setFont(font);
+        jtfDescrizione = new JTextField(18);
+        jtfDescrizione.setCaretColor(Color.BLACK);
+        jtfDescrizione.setBackground(JTF_COLOR);
+        jtfDescrizione.setBorder(new LineBorder(Color.BLACK));
+        jtfDescrizione.setFont(font);
 
+        lblData = new JLabel("Data scarico");
+        lblData.setFont(font);
 
-        lblIndirizzo = new JLabel("Indirizzo");
-        lblIndirizzo.setFont(font);
+        jdcData = new JDateChooser();
+        jdcData.setDateFormatString("dd/MM/yyyy");
+        jdcData.setPreferredSize(new Dimension(220, 30));
 
-        jtfIndirizzo = new JTextField(18);
-        jtfIndirizzo.setCaretColor(Color.BLACK);
-        jtfIndirizzo.setBackground(JTF_COLOR);
-        jtfIndirizzo.setBorder(new LineBorder(Color.BLACK));
-        jtfIndirizzo.setFont(font);
+        jdcData.setFont(new Font("HelveticaNeue", Font.BOLD, 16));
+        Date date = new Date();
+        jdcData.setDate(date);
+        jdcData.setMaxSelectableDate(new Date());
+        JTextFieldDateEditor dateEditor = (JTextFieldDateEditor) jdcData.getComponent(1);
+        dateEditor.setHorizontalAlignment(JTextField.RIGHT);
+        dateEditor.setFont(font);
+        dateEditor.setBackground(JTF_COLOR);
+        dateEditor.setBorder(new LineBorder(Color.BLACK));
 
-        lblComune = new JLabel("Comune");
-        lblComune.setFont(font);
+        lblQuantita = new JLabel("Quantita' scarico");
+        lblQuantita.setFont(font);
 
-        jtfComune = new JTextField(18);
-        jtfComune.setCaretColor(Color.BLACK);
-        jtfComune.setBackground(JTF_COLOR);
-        jtfComune.setBorder(new LineBorder(Color.BLACK));
-        jtfComune.setFont(font);
+        jspQuantita = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
+        jspQuantita.setBorder(new EmptyBorder(0, 5, 0, 0));
+        jspQuantita.setBorder(new LineBorder(Color.BLACK));
+        jspQuantita.setPreferredSize(new Dimension(120, 25));
+        jspQuantita.setFont(font);
+        JTextField jtfQuantita = ((JSpinner.DefaultEditor) jspQuantita.getEditor()).getTextField();
+        jtfQuantita.setBackground(JTF_COLOR);
+        jtfQuantita.setCaretColor(new Color(255, 255, 255));
 
-        lblPiva = new JLabel("Partita IVA");
-        lblPiva.setFont(font);
+        lblFornitore = new JLabel("Fornitore");
+        lblFornitore.setFont(font);
 
-        jtfPiva = new JTextField(18);
-        jtfPiva.setCaretColor(Color.BLACK);
-        jtfPiva.setBackground(JTF_COLOR);
-        jtfPiva.setBorder(new LineBorder(Color.BLACK));
-        jtfPiva.setFont(font);
-
-
-        lblMail = new JLabel("Mail");
-        lblMail.setFont(font);
-
-        jtfMail = new JTextField(18);
-        jtfMail.setCaretColor(Color.BLACK);
-        jtfMail.setBackground(JTF_COLOR);
-        jtfMail.setBorder(new LineBorder(Color.BLACK));
-        jtfMail.setFont(font);
-
-        lblTelefono = new JLabel("Telefono");
-        lblTelefono.setFont(font);
-
-        jtfTelefono = new JTextField(18);
-        jtfTelefono.setCaretColor(Color.BLACK);
-        jtfTelefono.setBackground(JTF_COLOR);
-        jtfTelefono.setBorder(new LineBorder(Color.BLACK));
-        jtfTelefono.setFont(font);
-
-        lblFax = new JLabel("Fax");
-        lblFax.setFont(font);
-
-        jtfFax = new JTextField(18);
-        jtfFax.setCaretColor(Color.BLACK);
-        jtfFax.setBackground(JTF_COLOR);
-        jtfFax.setBorder(new LineBorder(Color.BLACK));
-        jtfFax.setFont(font);
-
-        lblSito = new JLabel("Website");
-        lblSito.setFont(font);
-
-        jtfSito = new JTextField(18);
-        jtfSito.setCaretColor(Color.BLACK);
-        jtfSito.setBackground(JTF_COLOR);
-        jtfSito.setBorder(new LineBorder(Color.BLACK));
-        jtfSito.setFont(font);
+        jtfFornitore = new JTextField(18);
+        jtfFornitore.setCaretColor(Color.BLACK);
+        jtfFornitore.setBackground(JTF_COLOR);
+        jtfFornitore.setBorder(new LineBorder(Color.BLACK));
+        jtfFornitore.setFont(font);
 
         lblNote = new JLabel("Note");
         lblNote.setFont(font);
-
 
         jtaNote = new JTextArea(3, 18);
         jtaNote.setLineWrap(true);
@@ -206,66 +191,38 @@ public class FornitorePane extends JFrame implements ActionListener {
 
         gc.anchor = GridBagConstraints.LINE_START;
         gc.insets = new Insets(2, 10, 2, 10);
-        internPane.add(lblNome, gc);
+        internPane.add(lblCodice, gc);
 
         gc.gridx = 0;
         gc.gridy = 1;
 
         gc.anchor = GridBagConstraints.LINE_START;
         gc.insets = new Insets(2, 10, 2, 10);
-        internPane.add(lblCognome, gc);
+        internPane.add(lblDescrizione, gc);
 
         gc.gridx = 0;
         gc.gridy = 2;
 
         gc.anchor = GridBagConstraints.LINE_START;
         gc.insets = new Insets(2, 10, 2, 10);
-        internPane.add(lblIndirizzo, gc);
+        internPane.add(lblData, gc);
 
         gc.gridx = 0;
         gc.gridy = 3;
 
         gc.anchor = GridBagConstraints.LINE_START;
         gc.insets = new Insets(2, 10, 2, 10);
-        internPane.add(lblComune, gc);
+        internPane.add(lblQuantita, gc);
 
         gc.gridx = 0;
         gc.gridy = 4;
 
         gc.anchor = GridBagConstraints.LINE_START;
         gc.insets = new Insets(2, 10, 2, 10);
-        internPane.add(lblPiva, gc);
+        internPane.add(lblFornitore, gc);
 
         gc.gridx = 0;
         gc.gridy = 5;
-
-        gc.anchor = GridBagConstraints.LINE_START;
-        gc.insets = new Insets(2, 10, 2, 10);
-        internPane.add(lblMail, gc);
-
-        gc.gridx = 0;
-        gc.gridy = 6;
-
-        gc.anchor = GridBagConstraints.LINE_START;
-        gc.insets = new Insets(2, 10, 2, 10);
-        internPane.add(lblTelefono, gc);
-
-        gc.gridx = 0;
-        gc.gridy = 7;
-
-        gc.anchor = GridBagConstraints.LINE_START;
-        gc.insets = new Insets(2, 10, 2, 10);
-        internPane.add(lblFax, gc);
-
-        gc.gridx = 0;
-        gc.gridy = 8;
-
-        gc.anchor = GridBagConstraints.LINE_START;
-        gc.insets = new Insets(2, 10, 2, 10);
-        internPane.add(lblSito, gc);
-
-        gc.gridx = 0;
-        gc.gridy = 9;
 
         gc.anchor = GridBagConstraints.LINE_START;
         gc.insets = new Insets(2, 10, 2, 10);
@@ -277,58 +234,34 @@ public class FornitorePane extends JFrame implements ActionListener {
         gc.gridy = 0;
 
         gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtfNome, gc);
+        internPane.add(jcbCodice, gc);
 
         gc.gridx = 1;
         gc.gridy = 1;
 
         gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtfCognome, gc);
+        internPane.add(jtfDescrizione, gc);
 
         gc.gridx = 1;
         gc.gridy = 2;
 
         gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtfIndirizzo, gc);
+        internPane.add(jdcData, gc);
 
         gc.gridx = 1;
         gc.gridy = 3;
 
         gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtfComune, gc);
+        internPane.add(jspQuantita, gc);
 
         gc.gridx = 1;
         gc.gridy = 4;
 
         gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtfPiva, gc);
+        internPane.add(jtfFornitore, gc);
 
         gc.gridx = 1;
         gc.gridy = 5;
-
-        gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtfMail, gc);
-
-        gc.gridx = 1;
-        gc.gridy = 6;
-
-        gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtfTelefono, gc);
-
-        gc.gridx = 1;
-        gc.gridy = 7;
-
-        gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtfFax, gc);
-
-        gc.gridx = 1;
-        gc.gridy = 8;
-
-        gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtfSito, gc);
-
-        gc.gridx = 1;
-        gc.gridy = 9;
 
         gc.anchor = GridBagConstraints.LINE_START;
         internPane.add(jtaNote, gc);
@@ -349,11 +282,22 @@ public class FornitorePane extends JFrame implements ActionListener {
         actionPane.add(btn_clear, ca);
         actionPane.add(btn_save, ca);
 
-        btn_clear.addActionListener(e -> initFornitorePane());
-        btn_save.addActionListener(e -> {
-            insertFornitoreToDB();
-            dispose();
+        jcbCodice.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                jtfDescrizione.setText(getProduct(String.valueOf(jcbCodice.getSelectedItem())).getDescrizione());
+                jtfFornitore.setText(getProduct(String.valueOf(jcbCodice.getSelectedItem())).getFornitore());
+                jtfDescrizione.setEditable(false);
+                jtfFornitore.setEditable(false);
+
+            }
         });
+
+        btn_clear.addActionListener(e -> initInfoCaricoPane());
+        btn_save.addActionListener(e -> {
+                    insertScaricoToDB();
+                    dispose();
+                }
+        );
     }
 
     void formatButton(JButton btn) {
@@ -367,21 +311,17 @@ public class FornitorePane extends JFrame implements ActionListener {
         btn.setPreferredSize(new Dimension(160, 40));
     }
 
-    public static void initFornitorePane() {
-        table.getSelectionModel().clearSelection();
-        jtfNome.setText(null);
-        jtfCognome.setText(null);
-        jtfIndirizzo.setText(null);
-        jtfComune.setText(null);
-        jtfPiva.setText(null);
-        jtfMail.setText(null);
-        jtfTelefono.setText(null);
-        jtfFax.setText(null);
-        jtfSito.setText(null);
+    public static void initInfoCaricoPane() {
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+    }
 
+    private static boolean codiceFilter(String codice, String textToFilter) {
+        if (textToFilter.isEmpty()) {
+            return true;
+        }
+        return CustomComboRenderer.getProcessDisplayText(codice).toLowerCase().contains(textToFilter.toLowerCase());
     }
 }

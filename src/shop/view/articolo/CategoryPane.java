@@ -128,8 +128,6 @@ public class CategoryPane extends JFrame implements ActionListener {
 
         filterField = RowFilterUtil.createRowFilter(table);
         filterField.setColumns(16);
-        filterField = RowFilterUtil.createRowFilter(table);
-        filterField.setColumns(16);
         RendererHighlighted renderer = new RendererHighlighted(filterField);
         table.setDefaultRenderer(Object.class, renderer);
         renderer.setHorizontalAlignment(SwingConstants.CENTER);

@@ -1,4 +1,4 @@
-package shop.view.carico;
+package shop.view.rilevazione;
 
 import com.toedter.calendar.JDateChooser;
 import com.toedter.calendar.JTextFieldDateEditor;
@@ -16,12 +16,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
 
-import static shop.view.carico.controller.CaricoDbOperation.*;
+import static shop.view.rilevazione.controller.CaricoDbOperation.*;
 
 public class InfoCaricoPane extends JFrame implements ActionListener {
 
@@ -35,10 +34,10 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
     public static JTextField jtfDescrizione, jtfFornitore;
     public static JSpinner jspQuantita;
     public static JDateChooser jdcData;
+    public static JComboBox<String> jcbCodice;
     protected JButton btn_save, btn_clear;
     public static JTextArea jtaNote;
     private static final Color JTF_COLOR = new Color(46, 134, 193);
-    public static JComboBox<String> jcbCodice;
 
     public InfoCaricoPane() {
 
@@ -47,8 +46,8 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
         setLocationRelativeTo(null);
         setResizable(false);
         Dimension size = new Dimension(new Dimension(WIDTH, HEIGHT));
-        setSize(size);
         setPreferredSize(size);
+        setSize(size);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Dimension frameSize = getSize();
         setLocation(new Point((screenSize.width - frameSize.width) / 2, (screenSize.height - frameSize.height) / 2));
@@ -113,7 +112,7 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
 
         ArrayList<String> items = getListCodici();
         items.add(0, null);
-        jcbCodice = new JComboBox(items.toArray());
+        jcbCodice = new JComboBox<>(items.toArray(new String[0]));
         ComboBoxFilterDecorator<String> decorate = ComboBoxFilterDecorator.decorate(jcbCodice, InfoCaricoPane::codiceFilter);
         jcbCodice.setRenderer(new CustomComboRenderer(decorate.getFilterLabel()));
         jcbCodice.setBorder(new LineBorder(Color.BLACK));
@@ -139,13 +138,14 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
         jdcData.setFont(new Font("Helvetica Neue", Font.BOLD, 16));
         Date date = new Date();
         jdcData.setDate(date);
+        jdcData.setMaxSelectableDate(new Date());
         JTextFieldDateEditor dateEditor = (JTextFieldDateEditor) jdcData.getComponent(1);
         dateEditor.setHorizontalAlignment(JTextField.RIGHT);
         dateEditor.setFont(font);
         dateEditor.setBackground(JTF_COLOR);
         dateEditor.setBorder(new LineBorder(Color.BLACK));
 
-        lblQuantita = new JLabel("Quantita' di carico");
+        lblQuantita = new JLabel("Quantita' carico");
         lblQuantita.setFont(font);
 
         jspQuantita = new JSpinner(new SpinnerNumberModel(0, 0, 1000, 1));
@@ -312,7 +312,6 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
     }
 
     public static void initInfoCaricoPane() {
-
     }
 
     @Override
@@ -325,6 +324,4 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
         }
         return CustomComboRenderer.getProcessDisplayText(codice).toLowerCase().contains(textToFilter.toLowerCase());
     }
-
-
 }

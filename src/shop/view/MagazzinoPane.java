@@ -45,7 +45,7 @@ public class MagazzinoPane extends AContainer implements ActionListener {
         toolbar.addSeparator();
         btn_close.addActionListener(evt -> System.exit(0));
 
-        UIManager.put("TabbedPane.tabInsets", new Insets(20, 40, 17, 10));
+        UIManager.put("TabbedPane.tabInsets", new Insets(12, 40, 12, 10));
         UIManager.put("TabbedPane.contentBorderInsets", new Insets(0, 0, 0, 0));
         UIManager.put("TabbedPane.tabAreaInsets", new Insets(0, 0, 0, 0));
         UIManager.put("TabbedPane.selectedLabelShift", 0);
@@ -62,15 +62,14 @@ public class MagazzinoPane extends AContainer implements ActionListener {
             }
         };
 
-        ArrayList<String> list_actions = new ArrayList<>(
-                Arrays.asList("ANAGRAFICA", "STORICO", "RILEVAZIONI", "RICHIESTE")
-        );
-
+        ArrayList<String> list_actions = new ArrayList<>(Arrays.asList("ANAGRAFICA", "STORICO", "RILEVAZIONI", "RICHIESTE"));
         for (String action : list_actions) {
             if (action.equals("ANAGRAFICA"))
                 tabbedPane.addTab(action, new AnagraficaPane().getPanel());
             else if (action.equals("RILEVAZIONI"))
                 tabbedPane.addTab(action, new RilevazionePane().getPanel());
+            else if (action.equals("STORICO"))
+                tabbedPane.addTab(action, new GiacenzaPane().getPanel());
             else
                 tabbedPane.addTab(action, new JPanel());
         }
@@ -112,13 +111,11 @@ public class MagazzinoPane extends AContainer implements ActionListener {
         container.setLayout(new BorderLayout());
         container.add(toolbar, BorderLayout.NORTH);
         container.add(tabbedPane, BorderLayout.CENTER);
-
     }
 
     public static class CustomMainMenuTabs extends BasicTabbedPaneUI {
 
-        protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h,
-                                          boolean isSelected) {
+        protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
             Graphics2D g2 = (Graphics2D) g;
             Color color;
             if (isSelected) {
@@ -130,34 +127,29 @@ public class MagazzinoPane extends AContainer implements ActionListener {
             }
             g2.setPaint(color);
             g2.fill(new RoundRectangle2D.Double(x, y, w, h, 30, 30));
-            g2.fill(new Rectangle2D.Double(x + 100, y, w, h));
+            //g2.fill(new Rectangle2D.Double(x + 100, y, w, h));
         }
 
-        protected void paintTabBorder(Graphics g, int tabPlacement,
-                                      int tabIndex, int x, int y, int w, int h, boolean isSelected) {
+        protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
             g.setColor(new Color(116, 142, 203));
             g.drawRect(x, y, w, h);
-
         }
 
-        protected void paintFocusIndicator(Graphics g, int tabPlacement, Rectangle[] rects, int tabIndex,
-                                           Rectangle iconRect, Rectangle textRect, boolean isSelected) {}
+        protected void paintFocusIndicator(Graphics g, int tabPlacement, Rectangle[] rects, int tabIndex, Rectangle iconRect, Rectangle textRect, boolean isSelected) {
+        }
     }
 
     private static int findTabPaneIndex(Point p, JTabbedPane tabbedPane) {
         return IntStream.range(0, tabbedPane.getTabCount()).filter(i -> tabbedPane.getBoundsAt(i).contains(p.x, p.y)).findFirst().orElse(-1);
     }
 
-
     @Override
     public void actionPerformed(ActionEvent e) {
 
         container.removeAll();
         container.revalidate();
-
         if (e.getSource() == btn_prima)
             container.add(new Pannello().getPanel());
-
         container.repaint();
 
     }

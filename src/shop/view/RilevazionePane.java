@@ -70,7 +70,6 @@ public class RilevazionePane extends AContainer implements ActionListener {
         gc.insets = new Insets(5, 10, 10, 10);
         panel.add(btn_carico, gc);
 
-
         // second column//
         gc.anchor = GridBagConstraints.WEST;
         gc.gridx = 3;
@@ -80,22 +79,25 @@ public class RilevazionePane extends AContainer implements ActionListener {
         panel.add(btn_scarico, gc);
 
         container.add(panel);
-
         container.setLayout(new BorderLayout());
     }
-
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
 
+        container.removeAll();
+        container.revalidate();
         if (e.getSource() == btn_carico) {
-            container.removeAll();
-            container.revalidate();
             container.add(new CaricoPane().getPanel());
-            container.repaint();
-
+            CaricoPane.table.revalidate();
+            CaricoPane.table.repaint();
+        }else if (e.getSource() == btn_scarico) {
+            container.add(new ScaricoPane().getPanel());
+            ScaricoPane.table.revalidate();
+            ScaricoPane.table.repaint();
         }
+        container.repaint();
+
         /*
         if (e.getSource() == btn_prima)
             container.add(new MagazzinoPane().getPanel());

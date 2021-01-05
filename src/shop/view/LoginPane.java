@@ -94,7 +94,6 @@ public class LoginPane extends AContainer implements ActionListener {
         jtfPassword.setPreferredSize(new Dimension(350, 50));
         jtfPassword.setFont(font);
 
-
         informationPanel = new RoundedPanel();
         informationPanel.setBackground(new Color(39, 55, 70));
         informationPanel.setLayout(new GridBagLayout());

@@ -2,12 +2,11 @@ package shop.view;
 
 import com.toedter.calendar.JDateChooser;
 import com.toedter.calendar.JTextFieldDateEditor;
-import shop.model.Carico;
+import shop.model.Scarico;
 import shop.utils.DesktopRender;
 import shop.utils.RoundedPanel;
-import shop.view.rilevazione.CaricoPaneUpdate;
-import shop.view.rilevazione.InfoCaricoPane;
-
+import shop.view.rilevazione.InfoScaricoPane;
+import shop.view.rilevazione.ScaricoPaneUpdate;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -26,10 +25,10 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static shop.utils.DesktopRender.FONT_FAMILY;
-import static shop.view.rilevazione.controller.CaricoDbOperation.deleteCaricoFromDB;
-import static shop.view.rilevazione.controller.CaricoDbOperation.loadCaricoFromDB;
+import static shop.view.rilevazione.controller.ScaricoDbOperation.deleteScaricoFromDB;
+import static shop.view.rilevazione.controller.ScaricoDbOperation.loadScaricoFromDB;
 
-public class CaricoPane extends AContainer implements ActionListener {
+public class ScaricoPane extends AContainer implements ActionListener {
 
     private static final String DATE_FORMAT = "dd/MM/yyyy";
     public JButton btn_prima;
@@ -51,7 +50,7 @@ public class CaricoPane extends AContainer implements ActionListener {
     // Pulsante di carica articolo
     private Font font;
 
-    public CaricoPane() {
+    public ScaricoPane() {
         initPanel();
     }
 
@@ -75,7 +74,7 @@ public class CaricoPane extends AContainer implements ActionListener {
         gc.anchor = GridBagConstraints.LINE_END;
         gc.insets = new Insets(8, 150, 10, 10);
 
-        JLabel lblFormName = new JLabel("Operazioni di Carico");
+        JLabel lblFormName = new JLabel("Operazioni di Scarico");
         lblFormName.setForeground(Color.WHITE);
         lblFormName.setFont( new Font("HelveticaNeue", Font.BOLD, 28));
         toolbar.setBackground(new Color(128, 0, 128));
@@ -95,7 +94,6 @@ public class CaricoPane extends AContainer implements ActionListener {
         btn_prima.addActionListener(this);
         btn_prima.setToolTipText("Prima");
         btn_prima.addActionListener(this);
-
 
         // I pulsanti delle funzionalita'
         internPane = new JPanel();
@@ -193,22 +191,23 @@ public class CaricoPane extends AContainer implements ActionListener {
         wrapperPane.add(searchPane, BorderLayout.NORTH);
         wrapperPane.add(clientPane, BorderLayout.CENTER);
 
-        btn_remove.addActionListener(e -> deleteCaricoFromDB());
+        btn_remove.addActionListener(e -> deleteScaricoFromDB());
         btn_search.addActionListener(e -> filterTable());
         btn_refresh.addActionListener(e -> refreshTable());
     }
 
     void buildArticleDetails() {
-        String[] header = {"Data Carico", "Codice Prodotto", "Descrizione", "Quantita'", "Fornitore", "Note"};
+        String[] header = {"Data Scarico", "Codice Prodotto", "Descrizione", "Quantita'", "Fornitore", "Note"};
         tableModel = new DefaultTableModel(new Object[][]{}, header) {
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
 
-        for (Carico carico : loadCaricoFromDB()) {
-            tableModel.addRow(new String[]{(new SimpleDateFormat(DATE_FORMAT)).format(carico.getDatacarico()), carico.getCodice(), carico.getDescrizione(), String.valueOf(carico.getQuantita()), carico.getFornitore(), carico.getNote()});
+        for (Scarico scarico : loadScaricoFromDB()) {
+            tableModel.addRow(new String[]{(new SimpleDateFormat(DATE_FORMAT)).format(scarico.getDatascarico()), scarico.getCodice(), scarico.getDescrizione(), String.valueOf(scarico.getQuantita()), scarico.getFornitore(), scarico.getNote()});
         }
+
 
         table = new JTable(tableModel) {
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -231,7 +230,6 @@ public class CaricoPane extends AContainer implements ActionListener {
         tableHeader = table.getTableHeader();
         tableHeader.setBackground(new Color(39, 55, 70));
         tableHeader.setForeground(Color.WHITE);
-
 
         DefaultTableCellRenderer renderer = (DefaultTableCellRenderer) table.getDefaultRenderer(Object.class);
         renderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -278,23 +276,23 @@ public class CaricoPane extends AContainer implements ActionListener {
         btn.setPreferredSize(new Dimension(120, 48));
     }
 
-    public Carico getSelectedCarico() {
+    public Scarico getSelectedScarico() {
 
-        Carico carico = new Carico();
+        Scarico scarico = new Scarico();
         if (table.getSelectedRow() >= 0) {
             int index = table.getSelectedRow();
             try {
-                carico.setDatacarico((new SimpleDateFormat(DATE_FORMAT)).parse(table.getValueAt(index, 0).toString()));
+                scarico.setDatascarico((new SimpleDateFormat(DATE_FORMAT)).parse(table.getValueAt(index, 0).toString()));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            carico.setCodice(String.valueOf(table.getValueAt(index, 1)));
-            carico.setDescrizione(String.valueOf(table.getValueAt(index, 2)));
-            carico.setQuantita(Integer.valueOf(String.valueOf(table.getValueAt(index, 3))));
-            carico.setFornitore(String.valueOf(table.getValueAt(index, 4)));
-            carico.setNote(String.valueOf(table.getValueAt(index, 5)));
+            scarico.setCodice(String.valueOf(table.getValueAt(index, 1)));
+            scarico.setDescrizione(String.valueOf(table.getValueAt(index, 2)));
+            scarico.setQuantita(Integer.valueOf(String.valueOf(table.getValueAt(index, 3))));
+            scarico.setFornitore(String.valueOf(table.getValueAt(index, 4)));
+            scarico.setNote(String.valueOf(table.getValueAt(index, 5)));
         }
-        return carico;
+        return scarico;
     }
 
     void filterTable() {
@@ -350,12 +348,12 @@ public class CaricoPane extends AContainer implements ActionListener {
             container.repaint();
         } else if (e.getSource() == btn_add) {
             table.getSelectionModel().clearSelection();
-            new InfoCaricoPane();
+            new InfoScaricoPane();
         } else if (e.getSource() == btn_update) {
             if (table.getSelectedRow() == -1) {
-                showMessageDialog(null, "Selezionare un carico", "Info Dialog", JOptionPane.ERROR_MESSAGE);
+                showMessageDialog(null, "Selezionare uno scarico", "Info Dialog", JOptionPane.ERROR_MESSAGE);
             } else
-                new CaricoPaneUpdate(getSelectedCarico());
+                new ScaricoPaneUpdate(getSelectedScarico());
         }
     }
 }

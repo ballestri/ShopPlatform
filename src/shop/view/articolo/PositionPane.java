@@ -128,8 +128,6 @@ public class PositionPane extends JFrame implements ActionListener {
 
         filterField = RowFilterUtil.createRowFilter(table);
         filterField.setColumns(16);
-        filterField = RowFilterUtil.createRowFilter(table);
-        filterField.setColumns(16);
         RendererHighlighted renderer = new RendererHighlighted(filterField);
         table.setDefaultRenderer(Object.class, renderer);
         renderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -141,7 +139,6 @@ public class PositionPane extends JFrame implements ActionListener {
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
         table.setFillsViewportHeight(true);
         table.getTableHeader().setReorderingAllowed(false);
-
         IntStream.range(0, elements.size()).forEach(i -> tableModel.addRow(new String[]{elements.get(i)}));
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,

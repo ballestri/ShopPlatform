@@ -1,21 +1,17 @@
-package shop.view.carico.controller;
+package shop.view.rilevazione.controller;
 
 import shop.db.ConnectionManager;
 import shop.model.Articolo;
 import shop.model.Carico;
-import shop.view.CaricoPane;
 import javax.swing.*;
 import java.sql.*;
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 import static shop.view.CaricoPane.tableModel;
 import static shop.view.CaricoPane.table;
-import static shop.view.carico.InfoCaricoPane.*;
-
+import static shop.view.rilevazione.InfoCaricoPane.*;
 
 public class CaricoDbOperation {
 
@@ -30,17 +26,14 @@ public class CaricoDbOperation {
             try {
                 Connection con = (new ConnectionManager()).getConnection();
                 Statement stmt = con.createStatement();
-                stmt.executeUpdate(String.format("DELETE FROM CARICO WHERE CODICE='%s'", table.getValueAt(table.getSelectedRow(), 1)));
+                int index=table.getSelectedRow();
+                stmt.executeUpdate(String.format("DELETE FROM CARICO WHERE CODICE='%s'", table.getValueAt(index, 1)));
                 stmt.close();
                 con.close();
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
             }
-            CaricoPane.tableModel.removeRow(table.getSelectedRow());
-        }
-
-        for (int index = 0; index < CaricoPane.tableModel.getRowCount(); index++) {
-            CaricoPane.tableModel.setValueAt(index + 1, index, 0);
+            tableModel.removeRow(table.getSelectedRow());
         }
 
         showMessageDialog(null, "Cancellazione effettuata", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
@@ -80,12 +73,11 @@ public class CaricoDbOperation {
     }
 
 
-
-    public static ArrayList<Carico>  loadCaricoFromDB() {
-        ArrayList<Carico> carichi = new ArrayList<>();
+    public static ArrayList<Carico> loadCaricoFromDB() {
+        ArrayList<Carico> list_carico = new ArrayList<>();
         try {
             Connection con = (new ConnectionManager()).getConnection();
-            ResultSet rs = con.createStatement().executeQuery("SELECT* FROM CARICO");
+            ResultSet rs = con.createStatement().executeQuery("SELECT C.CODICE,A.DESCRIZIONE,C.DATACARICO,C.QUANTITA,A.FORNITORE,C.NOTE FROM CARICO C JOIN ARTICOLO A ON (C.CODICE=A.CODICE)");
 
             while (rs.next()) {
                 Carico carico = new Carico();
@@ -95,31 +87,15 @@ public class CaricoDbOperation {
                 carico.setQuantita(rs.getInt("QUANTITA"));
                 carico.setFornitore(rs.getString("FORNITORE"));
                 carico.setNote(rs.getString("NOTE"));
-
-                carichi.add(carico);
+                list_carico.add(carico);
             }
             con.close();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
 
-        return carichi;
+        return list_carico;
     }
-
-    public static int getCaricoCountItems() {
-        int count=0;
-        try {
-            Connection con = (new ConnectionManager()).getConnection();
-            ResultSet rs = con.createStatement().executeQuery("SELECT COUNT(*) FROM CARICO");
-            rs.next();
-            count = rs.getInt(1);
-            con.close();
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        }
-        return count;
-    }
-
 
     private static boolean checkCodice(String piva) {
 
@@ -135,9 +111,9 @@ public class CaricoDbOperation {
         return isPresente;
     }
 
-    public static void insertCaricoToDB()  {
+    public static void insertCaricoToDB() {
 
-        Carico carico= new Carico();
+        Carico carico = new Carico();
         carico.setCodice(String.valueOf(jcbCodice.getSelectedItem()));
         carico.setDescrizione(jtfDescrizione.getText());
         carico.setDatacarico(jdcData.getDate());
@@ -149,7 +125,6 @@ public class CaricoDbOperation {
         if (carico.getCodice().isEmpty()) {
             showMessageDialog(null, "Codice articolo vuoto", "Info Dialog", JOptionPane.ERROR_MESSAGE);
         } else {
-
             if (checkCodice(carico.getCodice())) {
                 showMessageDialog(null, "Codice già presente", "Info Dialog", JOptionPane.ERROR_MESSAGE);
             } else {
@@ -158,13 +133,7 @@ public class CaricoDbOperation {
                     PreparedStatement preparedStmt = con.prepareStatement("INSERT INTO CARICO VALUES (?, ?, ?, ?, ?,?)");
                     preparedStmt.setString(1, carico.getCodice());
                     preparedStmt.setString(2, carico.getDescrizione());
-
-
-                    java.util.Date utilStartDate = jdcData.getDate();
-                    java.sql.Date sqlStartDate = new java.sql.Date(utilStartDate.getTime());
-
-                    preparedStmt.setDate(3, sqlStartDate);
-
+                    preparedStmt.setDate(3, new Date(jdcData.getDate().getTime()));
                     preparedStmt.setInt(4, carico.getQuantita());
                     preparedStmt.setString(5, carico.getFornitore());
                     preparedStmt.setString(6, carico.getNote());
@@ -173,25 +142,10 @@ public class CaricoDbOperation {
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
-                tableModel.addRow(new String[]{String.valueOf(getCaricoCountItems()), carico.getCodice(), carico.getDescrizione(), (new SimpleDateFormat("dd/MM/yyyy")).format(carico.getDatacarico()), String.valueOf(carico.getQuantita()), carico.getFornitore(), carico.getNote()});
+                tableModel.addRow(new String[]{(new SimpleDateFormat("dd/MM/yyyy")).format(carico.getDatacarico()), carico.getCodice(), carico.getDescrizione(), String.valueOf(carico.getQuantita()), carico.getFornitore(), carico.getNote()});
                 showMessageDialog(null, "Carico inserito", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
             }
         }
     }
-
-
-    public static Date convertToSqlDate(Date date){
-        java.sql.Date data = new java.sql.Date(System.currentTimeMillis());
-        data = new java.sql.Date(date.getTime());
-
-        return data;
-    }
-
-    public static Date stringToDate(String s, String style) throws ParseException {
-        DateFormat format = new SimpleDateFormat(style);
-        Date date = (Date) format.parse(s);
-        return date;
-    }
-
-    }
+}
 

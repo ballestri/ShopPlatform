@@ -432,8 +432,6 @@ public class FornitorePaneUpdate extends JFrame implements ActionListener {
         fornitore.setWebsite(jtfSito.getText());
         fornitore.setNote(jtaNote.getText());
 
-
-
         if (fornitore.getPiva().isEmpty()) {
             showMessageDialog(null, "Partita IVA fornitore vuoto", "Info Dialog", JOptionPane.ERROR_MESSAGE);
         } else {
@@ -444,10 +442,7 @@ public class FornitorePaneUpdate extends JFrame implements ActionListener {
                 }
                 try {
                     Connection con = (new ConnectionManager()).getConnection();
-
-
                     PreparedStatement ps = con.prepareStatement("UPDATE FORNITORE SET NOME=?,COGNOME=?,INDIRIZZO=?,COMUNE=?,MAIL=?,TELEFONO=?,FAX=?,WEBSITE=?,NOTE=? WHERE PIVA= ?");
-
                     ps.setString(1, fornitore.getNome());
                     ps.setString(2, fornitore.getCognome());
                     ps.setString(3, fornitore.getIndirizzo());
@@ -471,7 +466,6 @@ public class FornitorePaneUpdate extends JFrame implements ActionListener {
                     tableModel.setValueAt(fornitore.getFax(), index, 8);
                     tableModel.setValueAt(fornitore.getWebsite(), index, 9);
                     tableModel.setValueAt(fornitore.getNote(), index, 10);
-
 
                     Statement stmt = con.createStatement();
                     stmt.executeUpdate(String.format("UPDATE ARTICOLO SET FORNITORE='%s' WHERE FORNITORE='%s'",fornitore.getCognome(),ragioneSociale));

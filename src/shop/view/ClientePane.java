@@ -54,17 +54,38 @@ public class ClientePane extends AContainer implements ActionListener {
         ToolTipManager.sharedInstance().setDismissDelay(4000);
 
         // I pulsanti della Toolbar
-        JToolBar toolbar = new JToolBar();
-        toolbar.setLayout(new FlowLayout(FlowLayout.RIGHT,0,0));
+        RoundedPanel toolbar = new RoundedPanel();
+        toolbar.setLayout(new GridBagLayout());
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.anchor = GridBagConstraints.EAST;
+        gc.weightx = 0.5;
+        gc.weighty = 0.5;
 
+        gc.gridx = 0;
+        gc.gridy = 0;
+
+        gc.anchor = GridBagConstraints.LINE_END;
+        gc.insets = new Insets(8, 150, 10, 10);
+
+        JLabel lblFormName = new JLabel("Fornitore");
+        lblFormName.setForeground(Color.WHITE);
+        lblFormName.setFont( new Font("HelveticaNeue", Font.BOLD, 28));
+        toolbar.setBackground(new Color(128, 0, 128));
+        lblFormName.setPreferredSize(new Dimension(360, 40));
+        toolbar.add(lblFormName,gc);
+
+        gc.anchor = GridBagConstraints.EAST;
+        gc.gridx = 1;
+        gc.gridy = 0;
+
+        gc.anchor = GridBagConstraints.LINE_END;
+        gc.insets = new Insets(0, 10, 0, 0);
         btn_prima = new JButton();
         btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/back.png")));
-        toolbar.add(btn_prima);
+        toolbar.add(btn_prima,gc);
         btn_prima.setFocusPainted(false);
         btn_prima.addActionListener(this);
         btn_prima.setToolTipText("Prima");
-        toolbar.addSeparator();
-        btn_prima.addActionListener(this);
 
         // I pulsanti delle funzionalita'
         internPane = new JPanel();
@@ -73,7 +94,6 @@ public class ClientePane extends AContainer implements ActionListener {
         searchPane = new RoundedPanel();
         build();
         buildClientArea();
-        toolbar.setFloatable(false);
         container.setLayout(new BorderLayout());
         container.add(toolbar, BorderLayout.NORTH);
     }
@@ -110,7 +130,6 @@ public class ClientePane extends AContainer implements ActionListener {
         filterField.setFont(font);
         filterField.setBorder(new LineBorder(Color.BLACK));
 
-
         btn_add = new JButton(DesktopRender.formatButton("+ New"));
         btn_update = new JButton(DesktopRender.formatButton("Update"));
         btn_remove = new JButton(DesktopRender.formatButton("Remove"));
@@ -118,8 +137,6 @@ public class ClientePane extends AContainer implements ActionListener {
         formatButton(btn_add);
         formatButton(btn_update);
         formatButton(btn_remove);
-
-
 
         searchPane.add(lbl, c);
         searchPane.add(filterField, c);
@@ -163,11 +180,9 @@ public class ClientePane extends AContainer implements ActionListener {
         tableHeader.setBackground(new Color(39, 55, 70));
         tableHeader.setForeground(Color.WHITE);
 
-        resizeColumnWidth(table);
 
         filterField = RowFilterUtil.createRowFilter(table);
         filterField.setColumns(20);
-
         RendererHighlighted renderer = new RendererHighlighted(filterField);
         table.setDefaultRenderer(Object.class, renderer);
         renderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -180,6 +195,8 @@ public class ClientePane extends AContainer implements ActionListener {
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         table.setPreferredScrollableViewportSize(new Dimension(1150, 420));
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        DesktopRender.resizeColumnWidth(table);
+
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -188,55 +205,6 @@ public class ClientePane extends AContainer implements ActionListener {
         scrollPane.getViewport().setBackground(table.getBackground());
 
         clientPane.add(scrollPane, BorderLayout.CENTER);
-    }
-
-
-    public void resizeColumnWidth(JTable table) {
-
-
-        for (int column = 0; column < table.getColumnCount(); column++) {
-            TableColumn tableColumn = table.getColumnModel().getColumn(column);
-            int preferredWidth = tableColumn.getMinWidth() + 120;
-            int maxWidth = tableColumn.getMaxWidth();
-
-            for (int row = 0; row < table.getRowCount(); row++) {
-                TableCellRenderer cellRenderer = table.getCellRenderer(row, column);
-                Component c = table.prepareRenderer(cellRenderer, row, column);
-                int width = c.getPreferredSize().width + table.getIntercellSpacing().width;
-                preferredWidth = Math.max(preferredWidth, width);
-
-                //  We've exceeded the maximum width, no need to check other rows
-
-                if (preferredWidth >= maxWidth) {
-                    preferredWidth = maxWidth;
-                    break;
-                }
-            }
-
-            tableColumn.setPreferredWidth(preferredWidth);
-        }
-
-        TableColumnModel columnModel = table.getColumnModel();
-        columnModel.getColumn(0).setPreferredWidth(60);
-        columnModel.getColumn(0).setResizable(false);
-
-
-
-/*
-        TableColumnModel columnModel = table.getColumnModel();
-        for (int column = 0; column < table.getColumnCount(); column++) {
-            int width = 40; // Min width
-            for (int row = 0; row < table.getRowCount(); row++) {
-                TableCellRenderer renderer = table.getCellRenderer(row, column);
-                Component comp = table.prepareRenderer(renderer, row, column);
-                width = Math.max(comp.getPreferredSize().width +1 , width);
-            }
-            if(width > 300)
-                width=300;
-            columnModel.getColumn(column).setPreferredWidth(width);
-            table.getColumnModel().getColumn(column).setResizable(false);
-        }
-        */
     }
 
 
