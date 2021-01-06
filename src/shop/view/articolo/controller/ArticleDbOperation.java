@@ -2,14 +2,11 @@ package shop.view.articolo.controller;
 
 import shop.db.ConnectionManager;
 import shop.model.Articolo;
+import shop.view.GiacenzaPane;
 
 import javax.swing.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
-
 import static javax.swing.JOptionPane.showMessageDialog;
 import static shop.view.ArticoloPane.*;
 
@@ -28,7 +25,7 @@ public class ArticleDbOperation {
                 stmt.executeUpdate(String.format("DELETE FROM ARTICOLO WHERE CODICE='%s'", table.getValueAt(table.getSelectedRow(), 0)));
                 stmt.close();
                 con.close();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 System.out.println(ex.getMessage());
             }
             tableModel.removeRow(table.getSelectedRow());
@@ -69,7 +66,7 @@ public class ArticleDbOperation {
                     preparedStmt.setString(9, articolo.getProvenienza());
                     preparedStmt.execute();
                     con.close();
-                } catch (Exception e) {
+                } catch (SQLException e) {
                     System.out.println(e.getMessage());
                 }
                 tableModel.addRow(new String[]{articolo.getCodice(), articolo.getDescrizione(), articolo.getCategoria(), articolo.getPosizione(), articolo.getUnita(), articolo.getFornitore(), String.valueOf(articolo.getPrezzo()).replace(".", ",").concat(" €"), String.valueOf(articolo.getScorta()), articolo.getProvenienza()});
@@ -122,7 +119,7 @@ public class ArticleDbOperation {
                     tableModel.setValueAt(articolo.getScorta(), table.getSelectedRow(), 7);
                     tableModel.setValueAt(articolo.getProvenienza(), table.getSelectedRow(), 8);
                     con.close();
-                } catch (Exception e) {
+                } catch (SQLException e) {
                     System.out.println(e.getMessage());
                 }
                 showMessageDialog(null, "Articolo aggiornato", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
@@ -141,7 +138,7 @@ public class ArticleDbOperation {
             ResultSet rs = con.createStatement().executeQuery(String.format("SELECT* FROM ARTICOLO WHERE CODICE='%s' GROUP BY CODICE HAVING COUNT(*) > 0", codice));
             if (rs.next()) isPresente = true;
             con.close();
-        } catch (Exception ex) {
+        } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
         return isPresente;
@@ -182,7 +179,7 @@ public class ArticleDbOperation {
                 list_articles.add(article);
             }
             con.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         table.validate();

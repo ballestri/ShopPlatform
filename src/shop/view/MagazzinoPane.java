@@ -2,7 +2,6 @@ package shop.view;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +13,6 @@ public class MagazzinoPane extends AContainer implements ActionListener {
 
     public static final Color SELECTED_BG = new Color(128, 0, 128);
     public static final Color UNSELECTED_BG = new Color(17, 109, 91);
-
     private JButton btn_prima;
 
     public MagazzinoPane() {
@@ -62,16 +60,25 @@ public class MagazzinoPane extends AContainer implements ActionListener {
             }
         };
 
-        ArrayList<String> list_actions = new ArrayList<>(Arrays.asList("ANAGRAFICA", "STORICO", "RILEVAZIONI", "RICHIESTE"));
+        ArrayList<String> list_actions = new ArrayList<>(Arrays.asList("ANAGRAFICA", "RILEVAZIONI","GIACENZA","STORICO","RICHIESTE"));
         for (String action : list_actions) {
-            if (action.equals("ANAGRAFICA"))
-                tabbedPane.addTab(action, new AnagraficaPane().getPanel());
-            else if (action.equals("RILEVAZIONI"))
-                tabbedPane.addTab(action, new RilevazionePane().getPanel());
-            else if (action.equals("STORICO"))
-                tabbedPane.addTab(action, new GiacenzaPane().getPanel());
-            else
-                tabbedPane.addTab(action, new JPanel());
+            switch (action) {
+                case "ANAGRAFICA":
+                    tabbedPane.addTab(action, new AnagraficaPane().getPanel());
+                    break;
+                case "RILEVAZIONI":
+                    tabbedPane.addTab(action, new RilevazionePane().getPanel());
+                    break;
+                case "GIACENZA":
+                    tabbedPane.addTab(action, new GiacenzaPane().getPanel());
+                    break;
+                case "STORICO":
+                    tabbedPane.addTab(action, new StoricoPane().getPanel());
+                    break;
+                default:
+                    tabbedPane.addTab(action, new JPanel());
+                    break;
+            }
         }
 
         tabbedPane.setFont(new Font("HelveticaNeue", Font.BOLD, 20));

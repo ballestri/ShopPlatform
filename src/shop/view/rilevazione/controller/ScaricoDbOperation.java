@@ -3,6 +3,7 @@ package shop.view.rilevazione.controller;
 import shop.db.ConnectionManager;
 import shop.model.Articolo;
 import shop.model.Scarico;
+import shop.view.ScaricoPane;
 
 import javax.swing.*;
 import java.sql.*;
@@ -12,9 +13,12 @@ import java.util.ArrayList;
 import static javax.swing.JOptionPane.showMessageDialog;
 import static shop.view.ScaricoPane.tableModel;
 import static shop.view.ScaricoPane.table;
+import static shop.view.rilevazione.InfoScaricoPane.jdcData;
 import static shop.view.rilevazione.InfoScaricoPane.*;
 
 public class ScaricoDbOperation {
+
+    private static final String DATE_FORMAT = "dd/MM/yyyy";
 
     public static void deleteScaricoFromDB() {
 
@@ -23,20 +27,19 @@ public class ScaricoDbOperation {
             return;
         }
 
-        while (table.getSelectedRow() != -1) {
+        if (table.getSelectedRow() != -1) {
             try {
                 Connection con = (new ConnectionManager()).getConnection();
-                Statement stmt = con.createStatement();
-                int index=table.getSelectedRow();
-                stmt.executeUpdate(String.format("DELETE FROM SCARICO WHERE CODICE='%s'", table.getValueAt(index, 1)));
-                stmt.close();
+                String QUERY = "DELETE FROM SCARICO WHERE ID=?";
+                PreparedStatement preparedStmt = con.prepareStatement(QUERY);
+                preparedStmt.setInt(1, Integer.parseInt(table.getValueAt(table.getSelectedRow(), 0).toString()));
+                preparedStmt.execute();
                 con.close();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 System.out.println(ex.getMessage());
             }
             tableModel.removeRow(table.getSelectedRow());
         }
-
         showMessageDialog(null, "Cancellazione effettuata", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -51,7 +54,7 @@ public class ScaricoDbOperation {
             }
             stmt.close();
             con.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return codici;
@@ -67,7 +70,7 @@ public class ScaricoDbOperation {
                 articolo.setFornitore(rs.getString("FORNITORE"));
             }
             con.close();
-        } catch (Exception ex) {
+        } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
         return articolo;
@@ -91,25 +94,10 @@ public class ScaricoDbOperation {
                 list_scarico.add(scarico);
             }
             con.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-
         return list_scarico;
-    }
-
-    private static boolean checkCodice(String codice) {
-
-        boolean isPresente = false;
-        try {
-            Connection con = (new ConnectionManager()).getConnection();
-            ResultSet rs = con.createStatement().executeQuery(String.format("SELECT* FROM SCARICO WHERE CODICE='%s' GROUP BY CODICE HAVING COUNT(*) > 0", codice));
-            if (rs.next()) isPresente = true;
-            con.close();
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        }
-        return isPresente;
     }
 
     public static void insertScaricoToDB() {
@@ -122,30 +110,28 @@ public class ScaricoDbOperation {
         scarico.setFornitore(jtfFornitore.getText());
         scarico.setNote(jtaNote.getText());
 
-
         if (scarico.getCodice().isEmpty()) {
             showMessageDialog(null, "Codice articolo vuoto", "Info Dialog", JOptionPane.ERROR_MESSAGE);
         } else {
-            if (checkCodice(scarico.getCodice())) {
-                showMessageDialog(null, "Codice già presente", "Info Dialog", JOptionPane.ERROR_MESSAGE);
-            } else {
-                try {
-                    Connection con = (new ConnectionManager()).getConnection();
-                    PreparedStatement preparedStmt = con.prepareStatement("INSERT INTO SCARICO VALUES (?, ?, ?, ?, ?,?)");
-                    preparedStmt.setString(1, scarico.getCodice());
-                    preparedStmt.setString(2, scarico.getDescrizione());
-                    preparedStmt.setDate(3, new Date(jdcData.getDate().getTime()));
-                    preparedStmt.setInt(4, scarico.getQuantita());
-                    preparedStmt.setString(5, scarico.getFornitore());
-                    preparedStmt.setString(6, scarico.getNote());
-                    preparedStmt.execute();
-                    con.close();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-                tableModel.addRow(new String[]{(new SimpleDateFormat("dd/MM/yyyy")).format(scarico.getDatascarico()), scarico.getCodice(), scarico.getDescrizione(), String.valueOf(scarico.getQuantita()), scarico.getFornitore(), scarico.getNote()});
-                showMessageDialog(null, "Scarico inserito", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
+            try {
+                Connection con = (new ConnectionManager()).getConnection();
+                String QUERY = "INSERT INTO SCARICO (CODICE,DESCRIZIONE,DATASCARICO,QUANTITA,FORNITORE,NOTE) VALUES (?,?, ?, ?, ?, ?)";
+                PreparedStatement preparedStmt = con.prepareStatement(QUERY, Statement.RETURN_GENERATED_KEYS);
+                preparedStmt.setString(1, scarico.getCodice());
+                preparedStmt.setString(2, scarico.getDescrizione());
+                preparedStmt.setDate(3, new Date(jdcData.getDate().getTime()));
+                preparedStmt.setInt(4, scarico.getQuantita());
+                preparedStmt.setString(5, scarico.getFornitore());
+                preparedStmt.setString(6, scarico.getNote());
+                preparedStmt.execute();
+                ResultSet rs = preparedStmt.getGeneratedKeys();
+                if (rs.next()) scarico.setID(rs.getInt(1));
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
             }
+            ScaricoPane.tableModel.addRow(new String[]{String.valueOf(scarico.getID()), (new SimpleDateFormat(DATE_FORMAT)).format(scarico.getDatascarico()), scarico.getCodice(), scarico.getDescrizione(), String.valueOf(scarico.getQuantita()), scarico.getFornitore(), scarico.getNote()});
+            showMessageDialog(null, "Scarico inserito", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }

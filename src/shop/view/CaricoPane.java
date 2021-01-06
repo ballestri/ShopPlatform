@@ -96,7 +96,6 @@ public class CaricoPane extends AContainer implements ActionListener {
         btn_prima.setToolTipText("Prima");
         btn_prima.addActionListener(this);
 
-
         // I pulsanti delle funzionalita'
         internPane = new JPanel();
         wrapperPane = new JPanel();
@@ -199,7 +198,7 @@ public class CaricoPane extends AContainer implements ActionListener {
     }
 
     void buildArticleDetails() {
-        String[] header = {"Data Carico", "Codice Prodotto", "Descrizione", "Quantita'", "Fornitore", "Note"};
+        String[] header = {"","Data Carico", "Codice Prodotto", "Descrizione", "Quantita'", "Fornitore", "Note"};
         tableModel = new DefaultTableModel(new Object[][]{}, header) {
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -207,7 +206,7 @@ public class CaricoPane extends AContainer implements ActionListener {
         };
 
         for (Carico carico : loadCaricoFromDB()) {
-            tableModel.addRow(new String[]{(new SimpleDateFormat(DATE_FORMAT)).format(carico.getDatacarico()), carico.getCodice(), carico.getDescrizione(), String.valueOf(carico.getQuantita()), carico.getFornitore(), carico.getNote()});
+            tableModel.addRow(new String[]{String.valueOf(carico.getID()),(new SimpleDateFormat(DATE_FORMAT)).format(carico.getDatacarico()), carico.getCodice(), carico.getDescrizione(), String.valueOf(carico.getQuantita()), carico.getFornitore(), carico.getNote()});
         }
 
         table = new JTable(tableModel) {
@@ -220,7 +219,7 @@ public class CaricoPane extends AContainer implements ActionListener {
                     returnComp.setBackground((row % 2 == 0 ? new Color(88, 214, 141) : Color.WHITE));
                 }
 
-                if (column == 0 || column == 2 || column == 3)
+                if (column == 1 || column == 3 || column == 4)
                     ((JLabel) returnComp).setHorizontalAlignment(JLabel.CENTER);
                 else
                     ((JLabel) returnComp).setHorizontalAlignment(JLabel.RIGHT);
@@ -231,7 +230,6 @@ public class CaricoPane extends AContainer implements ActionListener {
         tableHeader = table.getTableHeader();
         tableHeader.setBackground(new Color(39, 55, 70));
         tableHeader.setForeground(Color.WHITE);
-
 
         DefaultTableCellRenderer renderer = (DefaultTableCellRenderer) table.getDefaultRenderer(Object.class);
         renderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -247,9 +245,16 @@ public class CaricoPane extends AContainer implements ActionListener {
         table.setFocusable(false);
         DesktopRender.resizeColumnWidth(table);
 
-        table.getColumnModel().getColumn(0).setMinWidth(220);
-        table.getColumnModel().getColumn(1).setMinWidth(80);
-        table.getColumnModel().getColumn(4).setMinWidth(220);
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
+
+        table.getColumnModel().getColumn(1).setMinWidth(178);
+        table.getColumnModel().getColumn(2).setMinWidth(80);
+        table.getColumnModel().getColumn(3).setMinWidth(260);
+        table.getColumnModel().getColumn(4).setMinWidth(80);
+        table.getColumnModel().getColumn(5).setMinWidth(220);
+        table.getColumnModel().getColumn(6).setMinWidth(220);
 
         scrollPane = new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -284,15 +289,15 @@ public class CaricoPane extends AContainer implements ActionListener {
         if (table.getSelectedRow() >= 0) {
             int index = table.getSelectedRow();
             try {
-                carico.setDatacarico((new SimpleDateFormat(DATE_FORMAT)).parse(table.getValueAt(index, 0).toString()));
+                carico.setDatacarico((new SimpleDateFormat(DATE_FORMAT)).parse(table.getValueAt(index, 1).toString()));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            carico.setCodice(String.valueOf(table.getValueAt(index, 1)));
-            carico.setDescrizione(String.valueOf(table.getValueAt(index, 2)));
-            carico.setQuantita(Integer.valueOf(String.valueOf(table.getValueAt(index, 3))));
-            carico.setFornitore(String.valueOf(table.getValueAt(index, 4)));
-            carico.setNote(String.valueOf(table.getValueAt(index, 5)));
+            carico.setCodice(String.valueOf(table.getValueAt(index, 2)));
+            carico.setDescrizione(String.valueOf(table.getValueAt(index, 3)));
+            carico.setQuantita(Integer.valueOf(String.valueOf(table.getValueAt(index, 4))));
+            carico.setFornitore(String.valueOf(table.getValueAt(index, 5)));
+            carico.setNote(String.valueOf(table.getValueAt(index, 6)));
         }
         return carico;
     }
@@ -303,7 +308,7 @@ public class CaricoPane extends AContainer implements ActionListener {
                 List<RowFilter<Object, Object>> filters;
                 sorter = new TableRowSorter<>(table.getModel());
                 table.setRowSorter(sorter);
-                filters = getDatesBetween(beginChooser.getDate(), endChooser.getDate()).stream().map(date -> RowFilter.regexFilter((new SimpleDateFormat(DATE_FORMAT)).format(date.getTime()), 0)).collect(Collectors.toList());
+                filters = getDatesBetween(beginChooser.getDate(), endChooser.getDate()).stream().map(date -> RowFilter.regexFilter((new SimpleDateFormat(DATE_FORMAT)).format(date.getTime()), 1)).collect(Collectors.toList());
                 RowFilter<Object, Object> rf = RowFilter.orFilter(filters);
                 sorter.setRowFilter(rf);
             } else {
@@ -356,6 +361,7 @@ public class CaricoPane extends AContainer implements ActionListener {
                 showMessageDialog(null, "Selezionare un carico", "Info Dialog", JOptionPane.ERROR_MESSAGE);
             } else
                 new CaricoPaneUpdate(getSelectedCarico());
+            table.getSelectionModel().clearSelection();
         }
     }
 }

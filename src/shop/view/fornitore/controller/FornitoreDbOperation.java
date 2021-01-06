@@ -2,11 +2,10 @@ package shop.view.fornitore.controller;
 import shop.db.ConnectionManager;
 import shop.model.Fornitore;
 import javax.swing.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.stream.IntStream;
+
 import static javax.swing.JOptionPane.showMessageDialog;
 import static shop.view.ClientePane.tableModel;
 import static shop.view.ClientePane.table;
@@ -29,16 +28,13 @@ public class FornitoreDbOperation {
                 stmt.executeUpdate(String.format("UPDATE ARTICOLO SET FORNITORE='%s' WHERE FORNITORE='%s'", "NOT CATEGORIZED", table.getValueAt(table.getSelectedRow(), 2)));
                 stmt.close();
                 con.close();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 System.out.println(ex.getMessage());
             }
             tableModel.removeRow(table.getSelectedRow());
         }
 
-        for (int index = 0; index < tableModel.getRowCount(); index++) {
-            tableModel.setValueAt(index + 1, index, 0);
-        }
-
+        IntStream.range(0, tableModel.getRowCount()).forEachOrdered(index -> tableModel.setValueAt(index + 1, index, 0));
         showMessageDialog(null, "Cancellazione effettuata", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -78,7 +74,7 @@ public class FornitoreDbOperation {
                     preparedStmt.setString(10, fornitore.getNote());
                     preparedStmt.execute();
                     con.close();
-                } catch (Exception e) {
+                } catch (SQLException e) {
                     System.out.println(e.getMessage());
                 }
 
@@ -97,12 +93,11 @@ public class FornitoreDbOperation {
             ResultSet rs = con.createStatement().executeQuery(String.format("SELECT* FROM FORNITORE WHERE PIVA='%s' GROUP BY PIVA HAVING COUNT(*) > 0", piva));
             if (rs.next()) isPresente = true;
             con.close();
-        } catch (Exception ex) {
+        } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
         return isPresente;
     }
-
 
     public static int getFornitoreCountItems() {
         int count=0;
@@ -112,7 +107,7 @@ public class FornitoreDbOperation {
             rs.next();
             count = rs.getInt(1);
             con.close();
-        } catch (Exception ex) {
+        } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
         return count;
@@ -141,7 +136,7 @@ public class FornitoreDbOperation {
                 list_fornitori.add(fornitore);
             }
             con.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
@@ -176,7 +171,7 @@ public class FornitoreDbOperation {
             }
             stmt.close();
             con.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return fornitori;

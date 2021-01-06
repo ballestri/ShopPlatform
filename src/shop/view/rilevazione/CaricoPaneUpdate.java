@@ -18,9 +18,7 @@ import java.awt.event.ItemEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 import static shop.view.CaricoPane.*;
@@ -75,9 +73,7 @@ public class CaricoPaneUpdate extends JFrame implements ActionListener {
         internPane = new RoundedPanel();
         actionPane = new JPanel();
         infoPane = new RoundedPanel();
-
         initComponents(carico);
-
         setElementsPane(carico);
         add(wrapperPane);
         getContentPane().setBackground(new Color(116, 142, 203));
@@ -111,7 +107,6 @@ public class CaricoPaneUpdate extends JFrame implements ActionListener {
         wrapperPane.setBorder(border);
 
         buildFornitore(carico);
-
         wrapperPane.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 20));
         wrapperPane.add(infoPane);
         wrapperPane.add(internPane);
@@ -128,11 +123,7 @@ public class CaricoPaneUpdate extends JFrame implements ActionListener {
         lblCodice = new JLabel("Codice prodotto");
         lblCodice.setFont(font);
 
-        ArrayList<String> items = new ArrayList() {
-            {
-                add(carico.getCodice());
-            }
-        };
+        ArrayList<String> items =new ArrayList<>(Collections.singletonList(carico.getCodice()));
         jcbCodice = new JComboBox<>(items.toArray(new String[0]));
         jcbCodice.setBorder(new LineBorder(Color.BLACK));
         jcbCodice.setFont(font);
@@ -196,7 +187,8 @@ public class CaricoPaneUpdate extends JFrame implements ActionListener {
         jtaNote.setBackground(JTF_COLOR);
         jtaNote.setBorder(new LineBorder(Color.BLACK));
         jtaNote.setFont(font);
-
+        JScrollPane jScrollNote = new JScrollPane(jtaNote, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         internPane.setLayout(new GridBagLayout());
         GridBagConstraints gc = new GridBagConstraints();
@@ -283,7 +275,7 @@ public class CaricoPaneUpdate extends JFrame implements ActionListener {
         gc.gridy = 5;
 
         gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtaNote, gc);
+        internPane.add(jScrollNote, gc);
 
         btn_update = new JButton(DesktopRender.formatButton("Update"));
         btn_clear = new JButton(DesktopRender.formatButton("Clear"));
@@ -307,7 +299,6 @@ public class CaricoPaneUpdate extends JFrame implements ActionListener {
                 jtfFornitore.setText(getProduct(String.valueOf(jcbCodice.getSelectedItem())).getFornitore());
                 jtfDescrizione.setEditable(false);
                 jtfFornitore.setEditable(false);
-
             }
         });
 
@@ -319,7 +310,6 @@ public class CaricoPaneUpdate extends JFrame implements ActionListener {
         });
 
     }
-
 
     public static void updateCaricoToDB() {
         Carico carico = new Carico();
@@ -339,9 +329,9 @@ public class CaricoPaneUpdate extends JFrame implements ActionListener {
             ps.execute();
 
             int index = table.getSelectedRow();
-            tableModel.setValueAt((new SimpleDateFormat(DATE_FORMAT)).format(carico.getDatacarico()), index, 0);
-            tableModel.setValueAt(carico.getQuantita(), index, 3);
-            tableModel.setValueAt(carico.getNote(), index, 5);
+            tableModel.setValueAt((new SimpleDateFormat(DATE_FORMAT)).format(carico.getDatacarico()), index, 1);
+            tableModel.setValueAt(carico.getQuantita(), index, 4);
+            tableModel.setValueAt(carico.getNote(), index, 6);
 
             con.close();
         } catch (Exception e) {
@@ -349,7 +339,6 @@ public class CaricoPaneUpdate extends JFrame implements ActionListener {
         }
         showMessageDialog(null, "Carico aggiornato", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
     }
-
 
     void formatButton(JButton btn) {
         btn.setFont(font);

@@ -44,7 +44,6 @@ public class CategoryPane extends JFrame implements ActionListener {
         setResizable(false);
         Dimension size = new Dimension(new Dimension(WIDTH, HEIGHT));
         setSize(size);
-        setPreferredSize(size);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Dimension frameSize = getSize();
         setLocation(new Point((screenSize.width - frameSize.width) / 2, (screenSize.height - frameSize.height) / 2));
@@ -76,7 +75,6 @@ public class CategoryPane extends JFrame implements ActionListener {
         btn_update.setFocusPainted(false);
         btn_update.addActionListener(this);
         btn_update.setPreferredSize(new Dimension(105, 40));
-
 
         // pulsante di aggiornamento
         btn_remove = new JButton("Delete");
@@ -148,7 +146,6 @@ public class CategoryPane extends JFrame implements ActionListener {
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         scrollPane.getViewport().setBackground(table.getBackground());
 
-
         JPanel filterPane = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(6, 5, 3, 10);
@@ -211,7 +208,7 @@ public class CategoryPane extends JFrame implements ActionListener {
                 }
                 stmt.close();
                 con.close();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 System.out.println(ex.getMessage());
             }
             DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(loadProductAttribute(Attribute.CATEGORIA.getAttribute()).toArray(new String[0]));
@@ -230,7 +227,7 @@ public class CategoryPane extends JFrame implements ActionListener {
                     stmt.executeUpdate(String.format("UPDATE ARTICOLO SET CATEGORIA='%s' WHERE CATEGORIA='%s'", "NOT CATEGORIZED", table.getValueAt(table.getSelectedRow(), 0)));
                     stmt.close();
                     con.close();
-                } catch (Exception ex) {
+                } catch (SQLException ex) {
                     System.out.println(ex.getMessage());
                 }
                 tableModel.removeRow(table.getSelectedRow());

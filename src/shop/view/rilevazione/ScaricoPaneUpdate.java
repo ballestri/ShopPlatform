@@ -152,7 +152,7 @@ public class ScaricoPaneUpdate extends JFrame implements ActionListener {
         lblData.setFont(font);
 
         jdcData = new JDateChooser();
-        jdcData.setDateFormatString("dd/MM/yyyy");
+        jdcData.setDateFormatString(DATE_FORMAT);
         jdcData.setPreferredSize(new Dimension(220, 30));
 
         jdcData.setFont(new Font("HelveticaNeue", Font.BOLD, 16));
@@ -198,6 +198,8 @@ public class ScaricoPaneUpdate extends JFrame implements ActionListener {
         jtaNote.setBorder(new LineBorder(Color.BLACK));
         jtaNote.setFont(font);
 
+        JScrollPane jScrollNote = new JScrollPane(jtaNote, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         internPane.setLayout(new GridBagLayout());
         GridBagConstraints gc = new GridBagConstraints();
@@ -284,7 +286,7 @@ public class ScaricoPaneUpdate extends JFrame implements ActionListener {
         gc.gridy = 5;
 
         gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtaNote, gc);
+        internPane.add(jScrollNote, gc);
 
         btn_update = new JButton(DesktopRender.formatButton("Update"));
         btn_clear = new JButton(DesktopRender.formatButton("Clear"));
@@ -320,7 +322,6 @@ public class ScaricoPaneUpdate extends JFrame implements ActionListener {
 
     }
 
-
     public static void updateScaricoToDB() {
         Scarico scarico = new Scarico();
         scarico.setCodice(String.valueOf(jcbCodice.getSelectedItem()));
@@ -339,9 +340,9 @@ public class ScaricoPaneUpdate extends JFrame implements ActionListener {
             ps.execute();
 
             int index = table.getSelectedRow();
-            tableModel.setValueAt((new SimpleDateFormat(DATE_FORMAT)).format(scarico.getDatascarico()), index, 0);
-            tableModel.setValueAt(scarico.getQuantita(), index, 3);
-            tableModel.setValueAt(scarico.getNote(), index, 5);
+            tableModel.setValueAt((new SimpleDateFormat(DATE_FORMAT)).format(scarico.getDatascarico()), index, 1);
+            tableModel.setValueAt(scarico.getQuantita(), index, 4);
+            tableModel.setValueAt(scarico.getNote(), index, 6);
 
             con.close();
         } catch (Exception e) {
@@ -362,7 +363,6 @@ public class ScaricoPaneUpdate extends JFrame implements ActionListener {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-    }
+    public void actionPerformed(ActionEvent e) {}
 
 }

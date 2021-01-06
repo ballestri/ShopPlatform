@@ -28,7 +28,7 @@ import static shop.view.fornitore.controller.FornitoreDbOperation.getListFornito
 public class ArticoloPane extends AContainer implements ActionListener {
 
     private static final Color JTF_COLOR = new Color(46, 134, 193);
-    public static JComboBox<String> jcbCategoria, jcbUnita, jcbPosizione,jcbFornitore;
+    public static JComboBox<String> jcbCategoria, jcbUnita, jcbPosizione, jcbFornitore;
     protected Font font;
     // la JToolbar
     protected JToolBar toolbar;
@@ -78,10 +78,10 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
         JLabel lblFormName = new JLabel("Prodotto");
         lblFormName.setForeground(Color.WHITE);
-        lblFormName.setFont( new Font("HelveticaNeue", Font.BOLD, 28));
+        lblFormName.setFont(new Font("HelveticaNeue", Font.BOLD, 28));
         toolbar.setBackground(new Color(128, 0, 128));
         lblFormName.setPreferredSize(new Dimension(360, 40));
-        toolbar.add(lblFormName,gc);
+        toolbar.add(lblFormName, gc);
 
         gc.anchor = GridBagConstraints.EAST;
         gc.gridx = 1;
@@ -91,7 +91,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
         gc.insets = new Insets(0, 10, 0, 0);
         btn_prima = new JButton();
         btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/back.png")));
-        toolbar.add(btn_prima,gc);
+        toolbar.add(btn_prima, gc);
         btn_prima.setFocusPainted(false);
         btn_prima.addActionListener(this);
         btn_prima.setToolTipText("Prima");
@@ -488,7 +488,6 @@ public class ArticoloPane extends AContainer implements ActionListener {
 
         buildFonctionality();
         table.getSelectionModel().addListSelectionListener(e -> getSelectedArticle());
-
         table.getColumnModel().getColumn(0).setMinWidth(80);
         table.getColumnModel().getColumn(6).setMinWidth(80);
 
@@ -516,6 +515,7 @@ public class ArticoloPane extends AContainer implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
+        JFrame frame= new JFrame();
         if (e.getSource() == btn_prima) {
             container.removeAll();
             container.revalidate();
@@ -528,6 +528,8 @@ public class ArticoloPane extends AContainer implements ActionListener {
         } else if (e.getSource() == btn_list_posizione) {
             new PositionPane(formatTitleFieldPane(e.getActionCommand()), IntStream.range(0, jcbPosizione.getItemCount()).mapToObj(i -> jcbPosizione.getItemAt(i)).collect(Collectors.toCollection(ArrayList::new)));
         }
+
+
     }
 
     public void getSelectedArticle() {

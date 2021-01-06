@@ -44,7 +44,6 @@ public class PositionPane extends JFrame implements ActionListener {
         setResizable(false);
         Dimension size = new Dimension(new Dimension(WIDTH, HEIGHT));
         setSize(size);
-        setPreferredSize(size);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Dimension frameSize = getSize();
         setLocation(new Point((screenSize.width - frameSize.width) / 2, (screenSize.height - frameSize.height) / 2));
@@ -210,7 +209,7 @@ public class PositionPane extends JFrame implements ActionListener {
                 }
                 stmt.close();
                 con.close();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 System.out.println(ex.getMessage());
             }
             DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(loadProductAttribute(Attribute.POSIZIONE.getAttribute()).toArray(new String[0]));

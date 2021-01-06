@@ -27,6 +27,7 @@ public class InfoScaricoPane extends JFrame implements ActionListener {
     private static final int WIDTH = 640;
     private static final int HEIGHT = 720;
     Font font;
+    private static final String DATE_FORMAT = "dd/MM/yyyy";
 
     JPanel wrapperPane, actionPane;
     RoundedPanel infoPane, internPane;
@@ -132,7 +133,7 @@ public class InfoScaricoPane extends JFrame implements ActionListener {
         lblData.setFont(font);
 
         jdcData = new JDateChooser();
-        jdcData.setDateFormatString("dd/MM/yyyy");
+        jdcData.setDateFormatString(DATE_FORMAT);
         jdcData.setPreferredSize(new Dimension(220, 30));
 
         jdcData.setFont(new Font("HelveticaNeue", Font.BOLD, 16));
@@ -177,7 +178,8 @@ public class InfoScaricoPane extends JFrame implements ActionListener {
         jtaNote.setBackground(JTF_COLOR);
         jtaNote.setBorder(new LineBorder(Color.BLACK));
         jtaNote.setFont(font);
-
+        JScrollPane jScrollNote = new JScrollPane(jtaNote, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         internPane.setLayout(new GridBagLayout());
         GridBagConstraints gc = new GridBagConstraints();
@@ -264,7 +266,7 @@ public class InfoScaricoPane extends JFrame implements ActionListener {
         gc.gridy = 5;
 
         gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtaNote, gc);
+        internPane.add(jScrollNote, gc);
 
         btn_save = new JButton(DesktopRender.formatButton("Save"));
         btn_clear = new JButton(DesktopRender.formatButton("Clear"));
@@ -315,8 +317,7 @@ public class InfoScaricoPane extends JFrame implements ActionListener {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-    }
+    public void actionPerformed(ActionEvent e) { }
 
     private static boolean codiceFilter(String codice, String textToFilter) {
         if (textToFilter.isEmpty()) {

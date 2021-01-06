@@ -3,6 +3,8 @@ package shop.model;
 import java.util.Date;
 
 public class Scarico {
+
+    private Integer id;
     private String codice;
     private String descrizione;
     private Date datascarico;
@@ -10,6 +12,14 @@ public class Scarico {
     private String fornitore;
     private String note;
 
+    public Integer getID() {
+        return id;
+    }
+
+    public void setID(Integer id) {
+        this.id = id;
+    }
+    
     public String getCodice() {
         return codice;
     }

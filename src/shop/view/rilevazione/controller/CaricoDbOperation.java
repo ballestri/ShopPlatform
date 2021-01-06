@@ -9,11 +9,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import static javax.swing.JOptionPane.showMessageDialog;
-import static shop.view.CaricoPane.tableModel;
-import static shop.view.CaricoPane.table;
+import static shop.view.CaricoPane.*;
 import static shop.view.rilevazione.InfoCaricoPane.*;
 
 public class CaricoDbOperation {
+
+    private static final String DATE_FORMAT = "dd/MM/yyyy";
 
     public static void deleteCaricoFromDB() {
 
@@ -22,20 +23,20 @@ public class CaricoDbOperation {
             return;
         }
 
-        while (table.getSelectedRow() != -1) {
+        if (table.getSelectedRow() != -1) {
+
             try {
                 Connection con = (new ConnectionManager()).getConnection();
-                Statement stmt = con.createStatement();
-                int index=table.getSelectedRow();
-                stmt.executeUpdate(String.format("DELETE FROM CARICO WHERE CODICE='%s'", table.getValueAt(index, 1)));
-                stmt.close();
+                String QUERY = "DELETE FROM CARICO WHERE ID=?";
+                PreparedStatement preparedStmt = con.prepareStatement(QUERY);
+                preparedStmt.setInt(1, Integer.parseInt(table.getValueAt(table.getSelectedRow(), 0).toString()));
+                preparedStmt.execute();
                 con.close();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 System.out.println(ex.getMessage());
             }
             tableModel.removeRow(table.getSelectedRow());
         }
-
         showMessageDialog(null, "Cancellazione effettuata", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -50,7 +51,7 @@ public class CaricoDbOperation {
             }
             stmt.close();
             con.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return codici;
@@ -66,7 +67,7 @@ public class CaricoDbOperation {
                 articolo.setFornitore(rs.getString("FORNITORE"));
             }
             con.close();
-        } catch (Exception ex) {
+        } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
         return articolo;
@@ -77,10 +78,11 @@ public class CaricoDbOperation {
         ArrayList<Carico> list_carico = new ArrayList<>();
         try {
             Connection con = (new ConnectionManager()).getConnection();
-            ResultSet rs = con.createStatement().executeQuery("SELECT C.CODICE,A.DESCRIZIONE,C.DATACARICO,C.QUANTITA,A.FORNITORE,C.NOTE FROM CARICO C JOIN ARTICOLO A ON (C.CODICE=A.CODICE)");
+            ResultSet rs = con.createStatement().executeQuery("SELECT C.ID, C.CODICE,A.DESCRIZIONE,C.DATACARICO,C.QUANTITA,A.FORNITORE,C.NOTE FROM CARICO C JOIN ARTICOLO A ON (C.CODICE=A.CODICE)");
 
             while (rs.next()) {
                 Carico carico = new Carico();
+                carico.setID(rs.getInt("ID"));
                 carico.setCodice(rs.getString("CODICE"));
                 carico.setDescrizione(rs.getString("DESCRIZIONE"));
                 carico.setDatacarico(rs.getDate("DATACARICO"));
@@ -90,25 +92,11 @@ public class CaricoDbOperation {
                 list_carico.add(carico);
             }
             con.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
         return list_carico;
-    }
-
-    private static boolean checkCodice(String piva) {
-
-        boolean isPresente = false;
-        try {
-            Connection con = (new ConnectionManager()).getConnection();
-            ResultSet rs = con.createStatement().executeQuery(String.format("SELECT* FROM CARICO WHERE CODICE='%s' GROUP BY CODICE HAVING COUNT(*) > 0", piva));
-            if (rs.next()) isPresente = true;
-            con.close();
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        }
-        return isPresente;
     }
 
     public static void insertCaricoToDB() {
@@ -121,30 +109,28 @@ public class CaricoDbOperation {
         carico.setFornitore(jtfFornitore.getText());
         carico.setNote(jtaNote.getText());
 
-
         if (carico.getCodice().isEmpty()) {
             showMessageDialog(null, "Codice articolo vuoto", "Info Dialog", JOptionPane.ERROR_MESSAGE);
         } else {
-            if (checkCodice(carico.getCodice())) {
-                showMessageDialog(null, "Codice già presente", "Info Dialog", JOptionPane.ERROR_MESSAGE);
-            } else {
-                try {
-                    Connection con = (new ConnectionManager()).getConnection();
-                    PreparedStatement preparedStmt = con.prepareStatement("INSERT INTO CARICO VALUES (?, ?, ?, ?, ?,?)");
-                    preparedStmt.setString(1, carico.getCodice());
-                    preparedStmt.setString(2, carico.getDescrizione());
-                    preparedStmt.setDate(3, new Date(jdcData.getDate().getTime()));
-                    preparedStmt.setInt(4, carico.getQuantita());
-                    preparedStmt.setString(5, carico.getFornitore());
-                    preparedStmt.setString(6, carico.getNote());
-                    preparedStmt.execute();
-                    con.close();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-                tableModel.addRow(new String[]{(new SimpleDateFormat("dd/MM/yyyy")).format(carico.getDatacarico()), carico.getCodice(), carico.getDescrizione(), String.valueOf(carico.getQuantita()), carico.getFornitore(), carico.getNote()});
-                showMessageDialog(null, "Carico inserito", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
+            try {
+                Connection con = (new ConnectionManager()).getConnection();
+                String QUERY = "INSERT INTO CARICO (CODICE,DESCRIZIONE,DATACARICO,QUANTITA,FORNITORE,NOTE) VALUES (?,?, ?, ?, ?, ?)";
+                PreparedStatement preparedStmt = con.prepareStatement(QUERY, Statement.RETURN_GENERATED_KEYS);
+                preparedStmt.setString(1, carico.getCodice());
+                preparedStmt.setString(2, carico.getDescrizione());
+                preparedStmt.setDate(3, new Date(jdcData.getDate().getTime()));
+                preparedStmt.setInt(4, carico.getQuantita());
+                preparedStmt.setString(5, carico.getFornitore());
+                preparedStmt.setString(6, carico.getNote());
+                preparedStmt.execute();
+                ResultSet rs = preparedStmt.getGeneratedKeys();
+                if (rs.next()) carico.setID(rs.getInt(1));
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
             }
+            tableModel.addRow(new String[]{String.valueOf(carico.getID()), (new SimpleDateFormat(DATE_FORMAT)).format(carico.getDatacarico()), carico.getCodice(), carico.getDescrizione(), String.valueOf(carico.getQuantita()), carico.getFornitore(), carico.getNote()});
+            showMessageDialog(null, "Carico inserito", "Info Dialog", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 }

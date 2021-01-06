@@ -98,16 +98,6 @@ public class RilevazionePane extends AContainer implements ActionListener {
         }
         container.repaint();
 
-        /*
-        if (e.getSource() == btn_prima)
-            container.add(new MagazzinoPane().getPanel());
-        else if (e.getSource() == btn_carico)
-            container.add(new ArticoloPane().getPanel());
-        else if (e.getSource() == btn_scarico)
-            container.add(new ClientePane().getPanel());
-
-         */
-
     }
 
 }

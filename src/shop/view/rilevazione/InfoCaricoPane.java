@@ -27,6 +27,8 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
     private static final int WIDTH = 640;
     private static final int HEIGHT = 720;
     Font font;
+    private static final String DATE_FORMAT = "dd/MM/yyyy";
+
 
     JPanel wrapperPane, actionPane;
     RoundedPanel infoPane, internPane;
@@ -72,7 +74,6 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
         infoPane = new RoundedPanel();
 
         initComponents();
-
         add(wrapperPane);
         getContentPane().setBackground(new Color(116, 142, 203));
         toolbar.setFloatable(false);
@@ -132,7 +133,7 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
         lblData.setFont(font);
 
         jdcData = new JDateChooser();
-        jdcData.setDateFormatString("dd/MM/yyyy");
+        jdcData.setDateFormatString(DATE_FORMAT);
         jdcData.setPreferredSize(new Dimension(220, 30));
 
         jdcData.setFont(new Font("Helvetica Neue", Font.BOLD, 16));
@@ -178,6 +179,10 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
         jtaNote.setBorder(new LineBorder(Color.BLACK));
         jtaNote.setFont(font);
 
+       JScrollPane jScrollNote = new JScrollPane(jtaNote, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+        jScrollNote.setBorder(new EmptyBorder(0, 0, 0, 0));
 
         internPane.setLayout(new GridBagLayout());
         GridBagConstraints gc = new GridBagConstraints();
@@ -264,7 +269,7 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
         gc.gridy = 5;
 
         gc.anchor = GridBagConstraints.LINE_START;
-        internPane.add(jtaNote, gc);
+        internPane.add(jScrollNote, gc);
 
         btn_save = new JButton(DesktopRender.formatButton("Save"));
         btn_clear = new JButton(DesktopRender.formatButton("Clear"));
@@ -274,7 +279,6 @@ public class InfoCaricoPane extends JFrame implements ActionListener {
 
         actionPane.setBackground(wrapperPane.getBackground());
         actionPane.setLayout(new GridBagLayout());
-
 
         GridBagConstraints ca = new GridBagConstraints();
         ca.insets = new Insets(5, 10, 15, 28);
