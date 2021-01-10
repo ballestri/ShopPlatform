@@ -128,6 +128,7 @@ public class CaricoPane extends AContainer implements ActionListener {
         clientPane.setBackground(wrapperPane.getBackground());
         clientPane.setPreferredSize(new Dimension(1150, 450));
         buildArticleDetails();
+
         searchPane.setPreferredSize(new Dimension(1150, 80));
         searchPane.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();

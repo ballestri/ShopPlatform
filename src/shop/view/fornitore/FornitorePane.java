@@ -115,7 +115,6 @@ public class FornitorePane extends JFrame implements ActionListener {
         jtfCognome.setBorder(new LineBorder(Color.BLACK));
         jtfCognome.setFont(font);
 
-
         lblIndirizzo = new JLabel("Indirizzo");
         lblIndirizzo.setFont(font);
 

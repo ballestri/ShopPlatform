@@ -13,7 +13,9 @@ public class MagazzinoPane extends AContainer implements ActionListener {
 
     public static final Color SELECTED_BG = new Color(128, 0, 128);
     public static final Color UNSELECTED_BG = new Color(17, 109, 91);
-    private JButton btn_prima;
+    protected JButton btn_prima, btn_close;
+    protected JToolBar toolbar;
+    protected JTabbedPane tabbedPane;
 
     public MagazzinoPane() {
         initPanel();
@@ -26,7 +28,7 @@ public class MagazzinoPane extends AContainer implements ActionListener {
 
         // Toolbar
         // I pulsanti della Toolbar
-        JToolBar toolbar = new JToolBar();
+        toolbar = new JToolBar();
         btn_prima = new JButton();
         btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/prima.png")));
         toolbar.add(btn_prima);
@@ -35,7 +37,7 @@ public class MagazzinoPane extends AContainer implements ActionListener {
         btn_prima.setToolTipText("Prima");
         toolbar.addSeparator();
 
-        JButton btn_close = new JButton();
+        btn_close = new JButton();
         btn_close.setIcon(new ImageIcon(this.getClass().getResource("/images/esci.png")));
         toolbar.add(btn_close);
         btn_close.setFocusPainted(false);
@@ -49,7 +51,7 @@ public class MagazzinoPane extends AContainer implements ActionListener {
         UIManager.put("TabbedPane.selectedLabelShift", 0);
         UIManager.put("TabbedPane.labelShift", 0);
 
-        JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP) {
+        tabbedPane = new JTabbedPane(SwingConstants.TOP) {
             @Override
             public void updateUI() {
                 setOpaque(true);
@@ -60,8 +62,8 @@ public class MagazzinoPane extends AContainer implements ActionListener {
             }
         };
 
-        ArrayList<String> list_actions = new ArrayList<>(Arrays.asList("ANAGRAFICA", "RILEVAZIONI","GIACENZA","STORICO","RICHIESTE"));
-        for (String action : list_actions) {
+        ArrayList<String> list_actions = new ArrayList<>(Arrays.asList("ANAGRAFICA", "RILEVAZIONI", "GIACENZA", "STORICO", "MOVIMENTAZIONI", "RICHIESTE"));
+        for (String action : list_actions)
             switch (action) {
                 case "ANAGRAFICA":
                     tabbedPane.addTab(action, new AnagraficaPane().getPanel());
@@ -75,15 +77,21 @@ public class MagazzinoPane extends AContainer implements ActionListener {
                 case "STORICO":
                     tabbedPane.addTab(action, new StoricoPane().getPanel());
                     break;
+                case "MOVIMENTAZIONI":
+                    tabbedPane.addTab(action, new MovimentazionePane().getPanel());
+                    break;
                 default:
                     tabbedPane.addTab(action, new JPanel());
                     break;
             }
-        }
 
         tabbedPane.setFont(new Font("HelveticaNeue", Font.BOLD, 20));
         toolbar.setFloatable(false);
         toolbar.setBorderPainted(true);
+
+        container.setLayout(new BorderLayout());
+        container.add(toolbar, BorderLayout.NORTH);
+        container.add(tabbedPane, BorderLayout.CENTER);
 
         tabbedPane.addMouseWheelListener(e -> {
             JTabbedPane pane = (JTabbedPane) e.getSource();
@@ -94,10 +102,8 @@ public class MagazzinoPane extends AContainer implements ActionListener {
                 pane.setSelectedIndex(0);
             else if (newIndex >= pane.getTabCount())
                 pane.setSelectedIndex(pane.getTabCount() - 1);
-            else {
+            else
                 pane.setSelectedIndex(newIndex);
-            }
-
         });
 
         tabbedPane.setUI(new CustomMainMenuTabs());
@@ -111,13 +117,8 @@ public class MagazzinoPane extends AContainer implements ActionListener {
                 }
             }
         };
-
         tabbedPane.addMouseMotionListener(listener);
         tabbedPane.setBackground(container.getBackground());
-
-        container.setLayout(new BorderLayout());
-        container.add(toolbar, BorderLayout.NORTH);
-        container.add(tabbedPane, BorderLayout.CENTER);
     }
 
     public static class CustomMainMenuTabs extends BasicTabbedPaneUI {
@@ -158,6 +159,5 @@ public class MagazzinoPane extends AContainer implements ActionListener {
         if (e.getSource() == btn_prima)
             container.add(new Pannello().getPanel());
         container.repaint();
-
     }
 }

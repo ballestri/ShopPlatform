@@ -159,7 +159,6 @@ public class LoginPane extends AContainer implements ActionListener {
         toolbar.setFloatable(false);
         container.setLayout(new BorderLayout());
         container.add(toolbar, BorderLayout.NORTH);
-
     }
 
     void controlAccess() {
@@ -167,7 +166,6 @@ public class LoginPane extends AContainer implements ActionListener {
         Connection con = (new ConnectionManager()).getConnection();
         try {
             Statement stmt = con.createStatement();
-
             ResultSet rs = stmt.executeQuery("SELECT * FROM Credentials");
             while (rs.next()) {
                 if (jtfUsername.getText().equals(rs.getString("username")) && ((new String(jtfPassword.getPassword())).equals(rs.getString("password")))) {

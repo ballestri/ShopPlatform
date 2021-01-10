@@ -12,14 +12,12 @@ import shop.utils.CreateRoundButton;
 public class Pannello extends AContainer implements ActionListener {
 
     // Le funzionalita dell'app
-    private JButton btn_magazzino;
-
+    protected JButton btn_magazzino,btn_contabilita,btn_prima,btn_close;
     protected Font font;
-
-    protected JButton btn_prima;
+    protected JToolBar toolbar;
+    protected JPanel panel;
 
     public Pannello() {
-
         initPanel();
     }
 
@@ -30,7 +28,7 @@ public class Pannello extends AContainer implements ActionListener {
 
         // Toolbar
         // I pulsanti della Toolbar
-        JToolBar toolbar = new JToolBar();
+        toolbar = new JToolBar();
 
         btn_prima = new JButton();
         btn_prima.setIcon(new ImageIcon(this.getClass().getResource("/images/prima.png")));
@@ -40,7 +38,7 @@ public class Pannello extends AContainer implements ActionListener {
         btn_prima.setToolTipText("Prima");
         toolbar.addSeparator();
 
-        JButton btn_close = new JButton();
+        btn_close = new JButton();
         btn_close.setIcon(new ImageIcon(this.getClass().getResource("/images/esci.png")));
         toolbar.add(btn_close);
         btn_close.setFocusPainted(false);
@@ -50,10 +48,10 @@ public class Pannello extends AContainer implements ActionListener {
 
         // Pulsanti
         btn_magazzino = new CreateRoundButton(DesktopRender.formatButton("Gestione", "Magazzino"));
-        JButton btn_contabilita = new CreateRoundButton(DesktopRender.formatButton("Gestione", "Contabilita"));
+        btn_contabilita = new CreateRoundButton(DesktopRender.formatButton("Gestione", "Contabilita"));
 
         // Pannello interno
-        JTable panel = new JTable();
+        panel = new JPanel();
 
         // Font dei pulsanti
         font = new Font("HelveticaNeue", Font.BOLD, 30);
@@ -106,11 +104,9 @@ public class Pannello extends AContainer implements ActionListener {
 
         // aggiungo i pulsanti al pannello interno
         container.add(panel);
-
         toolbar.setFloatable(false);
         container.setLayout(new BorderLayout());
         container.add(toolbar, BorderLayout.NORTH);
-
     }
 
     @Override

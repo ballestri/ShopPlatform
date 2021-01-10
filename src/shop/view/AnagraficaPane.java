@@ -31,7 +31,7 @@ public class AnagraficaPane extends AContainer implements ActionListener {
         // Font dei pulsanti
         Font font = new Font("HelveticaNeue", Font.BOLD, 30);
 
-        panel.setBounds(195, 105, 825, 625);
+        panel.setBounds(150, 105, 825, 625);
         Border whiteline = BorderFactory.createLineBorder(Color.WHITE);
         panel.setBorder(whiteline);
         panel.setBackground(new Color(128, 0, 128));
